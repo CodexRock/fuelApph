@@ -1,4 +1,3 @@
-
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
@@ -31,9 +30,10 @@ export async function extractFuelPriceFromImage(base64Image: string) {
 
     const response = await result.response;
     const text = response.text();
-    const jsonStr = text.match(/\{.*\}/s)?.[0];
-    if (jsonStr) {
-      return JSON.parse(jsonStr);
+    // Use robust Regex to extract JSON block even if Gemini wraps it in ```json blocks
+    const jsonStrMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonStrMatch) {
+      return JSON.parse(jsonStrMatch[0]);
     }
   } catch (error) {
     console.error("Gemini OCR failed:", error);
@@ -44,9 +44,15 @@ export async function extractFuelPriceFromImage(base64Image: string) {
 export async function processVoiceReport(prompt: string) {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const result = await model.generateContent(`Parse this voice input into fuel price data for Morocco: "${prompt}". Return JSON with keys: price (number), fuelType (one of: Diesel, Sans Plomb, Premium), stationName.`);
+    const result = await model.generateContent(`Parse this voice input into fuel price data for Morocco: "${prompt}". Return ONLY a JSON object with keys: price (number), fuelType (one of: Diesel, Sans Plomb, Premium). If the user doesn't say the fuel type, default to Diesel.`);
     const response = await result.response;
-    return response.text();
+    const text = response.text();
+    // Use robust Regex to extract JSON
+    const jsonStrMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonStrMatch) {
+      return JSON.parse(jsonStrMatch[0]);
+    }
+    return null;
   } catch (error) {
     console.error("Gemini Voice processing failed:", error);
     return null;

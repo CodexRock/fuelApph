@@ -18,6 +18,25 @@ interface MapExplorerProps {
   selectedStation?: Station | null;
 }
 
+interface SearchResult {
+  place_id: string;
+  description: string;
+  structured_formatting: {
+    main_text: string;
+    secondary_text: string;
+  };
+  source: 'google' | 'osm';
+  lat?: number;
+  lng?: number;
+}
+
+interface SearchedPlace {
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+}
+
 const BoundsTracker: React.FC<{ onBoundsChange: (bounds: L.LatLngBounds, center: L.LatLng) => void }> = ({ onBoundsChange }) => {
   const map = useMapEvents({
     moveend: () => onBoundsChange(map.getBounds(), map.getCenter()),
@@ -67,11 +86,57 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
   const [isLoadingArea, setIsLoadingArea] = useState(false);
   const [hasCenteredUser, setHasCenteredUser] = useState(false);
 
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [searchedPlace, setSearchedPlace] = useState<SearchedPlace | null>(null);
+
+  // Load Google Maps API via Official Bootstrap Loader (Required for Places API New / $rpc)
+  useEffect(() => {
+    const rawKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (!rawKey) return;
+
+    // Clean any accidental quotes or whitespace from the .env file
+    const cleanKey = rawKey.trim().replace(/['"]/g, '');
+
+    // Failsafe Warning: API Keys should start with 'AIza'
+    if (!cleanKey.startsWith('AIza')) {
+      console.error("🚨 FUELSPY WARNING: Your VITE_GOOGLE_MAPS_API_KEY does not start with 'AIza'. It looks invalid. Please check your .env.local file to ensure there are no comments on the same line.");
+    }
+
+    if (window.google?.maps?.importLibrary) return;
+
+    // Official Bootstrap Loader
+    ((g: any) => {
+      var h: any, a: any, k: any, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__", m = document, b: any = window;
+      b = b[c] || (b[c] = {});
+      var d = b.maps || (b.maps = {}), r = new Set(), e = new URLSearchParams(), u = () => h || (h = new Promise(async (f, n) => {
+        await (a = m.createElement("script"));
+        e.set("libraries", [...r].join(","));
+        for (k in g) e.set(k.replace(/[A-Z]/g, (t: string) => "_" + t[0].toLowerCase()), g[k]);
+        e.set("callback", c + ".maps." + q);
+        a.src = `https://maps.${c}apis.com/maps/api/js?` + e;
+        d[q] = f;
+        a.onerror = () => h = n(Error(p + " could not load."));
+        a.nonce = m.querySelector("script[nonce]")?.getAttribute("nonce") || "";
+        m.head.append(a);
+      }));
+      d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f: any, ...n: any) => r.add(f) && u().then(() => d[l](f, ...n))
+    })({
+      key: cleanKey,
+      v: "weekly",
+    });
+
+    // Pre-initialize Places Library
+    if (window.google?.maps?.importLibrary) {
+      window.google.maps.importLibrary("places").catch(console.error);
+    }
+  }, []);
+
   // Center on user location once when acquired
   useEffect(() => {
     if (userLocation && !hasCenteredUser && !selectedStation) {
       setTargetCenter(new L.LatLng(userLocation.lat, userLocation.lng));
-      setTargetZoom(14); // Good initial zoom
+      setTargetZoom(14);
       setHasCenteredUser(true);
     }
   }, [userLocation, hasCenteredUser, selectedStation]);
@@ -80,14 +145,14 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
   useEffect(() => {
     if (selectedStation?.location) {
       setTargetCenter(new L.LatLng(selectedStation.location.lat, selectedStation.location.lng));
-      setTargetZoom(16); // Close up zoom
+      setTargetZoom(16);
     }
   }, [selectedStation]);
 
   const fuelTypes: { id: FuelType; label: string }[] = [
-    { id: 'Diesel', label: t('station.diesel') },
-    { id: 'Sans Plomb', label: t('station.sansPlomb') },
-    { id: 'Premium', label: t('station.premium') }
+    { id: 'Diesel', label: t('station.diesel') || 'Diesel' },
+    { id: 'Sans Plomb', label: t('station.sansPlomb') || 'Sans Plomb' },
+    { id: 'Premium', label: t('station.premium') || 'Premium' }
   ];
 
   const handleBoundsChange = useCallback((bounds: L.LatLngBounds, center: L.LatLng) => {
@@ -95,22 +160,21 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
     setMapCenter(center);
   }, []);
 
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-
   const fetchPredictions = useCallback(
     L.Util.throttle(async (input: string) => {
-      if (!input.trim() || !window.google || !window.google.maps || !window.google.maps.places) return;
+      if (!input.trim()) return;
 
-      try {
-        const places = window.google.maps.places as any;
+      let suggestionsFound = false;
 
-        // Try the modern AutocompleteSuggestion API first
-        if (places.AutocompleteSuggestion) {
-          try {
-            const { suggestions } = await places.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+      // 1. Try Google Maps Places API (New) First via importLibrary
+      if (window.google?.maps?.importLibrary) {
+        try {
+          const placesLib = await window.google.maps.importLibrary("places") as any;
+
+          if (placesLib.AutocompleteSuggestion) {
+            const { suggestions } = await placesLib.AutocompleteSuggestion.fetchAutocompleteSuggestions({
               input,
-              includedRegionCodes: ['ma'],
+              includedRegionCodes: ['MA'], // MUST be uppercase per Google CLDR spec
               language: 'fr'
             });
 
@@ -121,37 +185,45 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
                 structured_formatting: {
                   main_text: s.placePrediction.text.text.split(',')[0],
                   secondary_text: s.placePrediction.text.text.split(',').slice(1).join(',').trim()
-                }
+                },
+                source: 'google'
               })));
-              return;
+              suggestionsFound = true;
             }
-          } catch (modernErr) {
-            // Silently swallow and fall back to legacy
-            console.warn("Modern Places API failed, falling back to legacy:", modernErr);
           }
+        } catch (err) {
+          console.warn("Google Places API error (likely backend $rpc rejection). Gracefully falling back to OSM...", err);
         }
+      }
 
-        // Fallback to the stable legacy AutocompleteService
-        const service = new window.google.maps.places.AutocompleteService();
-        service.getPlacePredictions(
-          {
-            input,
-            componentRestrictions: { country: 'ma' },
-            types: ['geocode', 'establishment']
-          },
-          (predictions, status) => {
-            if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
-              setSearchResults(predictions);
+      // 2. Fallback to OpenStreetMap (Nominatim) if Google fails (e.g. $rpc rejection, billing error)
+      if (!suggestionsFound) {
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(input)}&countrycodes=ma&format=json&limit=5`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.length > 0) {
+              setSearchResults(data.map((item: any) => ({
+                place_id: item.place_id.toString(),
+                description: item.display_name,
+                structured_formatting: {
+                  main_text: item.name || item.display_name.split(',')[0],
+                  secondary_text: item.display_name.split(',').slice(1).join(',').trim()
+                },
+                lat: parseFloat(item.lat),
+                lng: parseFloat(item.lon),
+                source: 'osm'
+              })));
             } else {
               setSearchResults([]);
             }
           }
-        );
-      } catch (err) {
-        console.error("Autocomplete fatal error:", err);
-        setSearchResults([]);
+        } catch (err) {
+          console.error("OSM Nominatim API failed:", err);
+          setSearchResults([]);
+        }
       }
-    }, 300),
+    }, 500),
     []
   );
 
@@ -163,22 +235,46 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
     }
   }, [searchQuery, fetchPredictions]);
 
-  const handlePlaceSelect = async (placeId: string) => {
+  const handlePlaceSelect = async (result: SearchResult) => {
     setIsLoadingArea(true);
     setSearchResults([]);
     setIsSearchFocused(false);
 
-    const geocoder = new window.google.maps.Geocoder();
-    geocoder.geocode({ placeId }, (results, status) => {
-      if (status === 'OK' && results?.[0]) {
-        const { lat, lng } = results[0].geometry.location;
-        const newCenter = new L.LatLng(lat(), lng());
+    try {
+      if (result.source === 'osm' && result.lat && result.lng) {
+        const newCenter = new L.LatLng(result.lat, result.lng);
         setTargetCenter(newCenter);
-        setTargetZoom(15);
-        setSearchQuery(results[0].formatted_address);
+        setTargetZoom(16);
+        setSearchQuery(result.structured_formatting.main_text);
+        setSearchedPlace({
+          name: result.structured_formatting.main_text,
+          address: result.description,
+          lat: result.lat,
+          lng: result.lng
+        });
+      } else if (window.google?.maps?.Geocoder) {
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ placeId: result.place_id }, (results, status) => {
+          if (status === 'OK' && results?.[0]) {
+            const { lat, lng } = results[0].geometry.location;
+            const newCenter = new L.LatLng(lat(), lng());
+            setTargetCenter(newCenter);
+            setTargetZoom(16);
+            setSearchQuery(result.structured_formatting.main_text);
+            setSearchedPlace({
+              name: result.structured_formatting.main_text,
+              address: results[0].formatted_address,
+              lat: lat(),
+              lng: lng()
+            });
+          }
+        });
       }
+    } catch (err) {
+      console.error(err);
+    } finally {
       setIsLoadingArea(false);
-    });
+    }
   };
 
   const MapEventsHandler = () => {
@@ -199,13 +295,12 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && searchResults.length > 0) {
-      handlePlaceSelect(searchResults[0].place_id);
+      handlePlaceSelect(searchResults[0]);
     }
   };
 
   const boundsKey = mapBounds ? `${mapBounds.getSouth().toFixed(4)},${mapBounds.getWest().toFixed(4)},${mapBounds.getNorth().toFixed(4)},${mapBounds.getEast().toFixed(4)}` : null;
 
-  // Fetch stations from Supabase and OSM based on map bounds
   useEffect(() => {
     const loadArea = async () => {
       if (!mapBounds) return;
@@ -219,7 +314,6 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
       };
 
       try {
-        // 1. Fetch Verified Stations from Supabase using spatial RPC
         const { data: supabaseStations, error: rpcError } = await supabase.rpc('get_stations_in_bounds', {
           min_lat: boundsData.south,
           max_lat: boundsData.north,
@@ -231,10 +325,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
           setDbStations(supabaseStations as Station[]);
         }
 
-        // 2. Fetch "Ghost" Stations from OSM
         const importedStations = await fetchStationsInBounds(boundsData);
-
-        // Filter out OSM stations that are already in our DB
         const dbIds = new Set((supabaseStations || []).map((s: any) => s.id));
         const newStations = importedStations.filter(s => !dbIds.has(s.id));
 
@@ -251,12 +342,10 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
   }, [boundsKey]);
 
   const displayedStations = useMemo(() => {
-    // Filter out dynamic stations that are too close (e.g., within 50 meters) to any dbStation
     const filteredDynamic = dynamicStations.filter(dyn => {
-      // Return true if NO dbStation is within 50m
       return !dbStations.some(db => {
         const dist = calculateDistance(dyn.location.lat, dyn.location.lng, db.location.lat, db.location.lng);
-        return dist < 50; // 50 meters threshold
+        return dist < 50;
       });
     });
     return [...dbStations, ...filteredDynamic];
@@ -270,6 +359,10 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
 
   const openWaze = (lat: number, lng: number) => {
     window.open(`waze://?ll=${lat},${lng}&navigate=yes`, '_blank');
+  };
+
+  const openGoogleMaps = (lat: number, lng: number) => {
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
   };
 
   const confirmPinDrop = () => {
@@ -339,8 +432,8 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
     <div className="relative h-full w-full bg-background-dark select-none overflow-hidden">
 
       {!isDroppingPin && (
-        <div className="absolute top-0 left-0 right-0 z-[1000] p-4 pt-6 space-y-2 pointer-events-none animate-fadeIn">
-          <div className="flex items-center gap-2 pointer-events-auto">
+        <div className="absolute top-0 left-0 right-0 z-[2000] p-4 pt-6 space-y-2 pointer-events-none animate-fadeIn">
+          <div className="relative flex items-center gap-2 pointer-events-auto z-50">
             <div className="flex-1 bg-surface-darker/90 backdrop-blur-xl rounded-2xl flex flex-col px-4 py-2 shadow-2xl border border-white/5 ring-1 ring-white/10 transition-all">
 
               <div className="flex items-center gap-2 h-10">
@@ -350,24 +443,36 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    if (e.target.value === '') {
+                      setSearchedPlace(null);
+                      setSearchResults([]);
+                    }
+                  }}
                   onKeyDown={handleSearch}
                   onFocus={() => setIsSearchFocused(true)}
-                  placeholder={isRouteMode ? t('map.startLocation') : t('map.searchPlaceholder')}
+                  placeholder={isRouteMode ? (t('map.startLocation') || 'Start location') : (t('map.searchPlaceholder') || 'Search location')}
                   disabled={isRouteMode}
                   className="bg-transparent border-none outline-none flex-1 text-xs font-bold text-white placeholder:text-slate-500 focus:ring-0 truncate disabled:opacity-50"
                 />
 
-                {/* Google Places Results Dropdown */}
+                {searchQuery && !isRouteMode && (
+                  <button onClick={() => { setSearchQuery(''); setSearchedPlace(null); setSearchResults([]); }} className="text-slate-400 mr-1 hover:text-white transition-colors">
+                    <span className="material-symbols-outlined text-[18px]">close</span>
+                  </button>
+                )}
+
+                {/* Search Results Dropdown */}
                 {isSearchFocused && searchResults.length > 0 && (
                   <div className="absolute top-full left-0 right-0 mt-2 bg-surface-darker/95 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden animate-slide-up z-[2000] pointer-events-auto">
                     {searchResults.map((res, i) => (
                       <button
                         key={res.place_id}
-                        onClick={() => handlePlaceSelect(res.place_id)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors active:bg-primary/20 ${i !== searchResults.length - 1 ? 'border-b border-white/5' : ''}`}
+                        onClick={() => handlePlaceSelect(res)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-white/5 active:bg-primary/20 ${i !== searchResults.length - 1 ? 'border-b border-white/5' : ''}`}
                       >
-                        <div className="size-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-400">
+                        <div className={`size-8 rounded-lg flex items-center justify-center text-slate-400 ${res.source === 'google' ? 'bg-white/5' : 'bg-primary/10 text-primary'}`}>
                           <span className="material-symbols-outlined text-lg">location_on</span>
                         </div>
                         <div className="flex-1 min-w-0">
@@ -376,9 +481,6 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
                         </div>
                       </button>
                     ))}
-                    <div className="px-4 py-2 bg-black/20 flex justify-end">
-                      <img src="https://developers.google.com/static/maps/images/google_on_white.png" alt="Powered by Google" className="h-2 opacity-50 inverse" />
-                    </div>
                   </div>
                 )}
 
@@ -388,7 +490,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
 
                 {!isRouteMode && !isLoadingArea && (
                   <button onClick={() => setIsRouteMode(true)} className="px-2 py-1 bg-primary/10 text-primary rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px]">route</span> {t('map.route')}
+                    <span className="material-symbols-outlined text-[14px]">route</span> {t('map.route') || 'Route'}
                   </button>
                 )}
                 {isRouteMode && (
@@ -403,7 +505,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
                   <span className="material-symbols-outlined text-red-500 text-[20px]">location_on</span>
                   <input
                     type="text"
-                    placeholder={t('map.whereTo')}
+                    placeholder={t('map.whereTo') || 'Where to?'}
                     value={destination}
                     onChange={(e) => setDestination(e.target.value)}
                     className="bg-transparent border-none outline-none flex-1 text-xs font-bold text-white placeholder:text-slate-500 focus:ring-0"
@@ -413,7 +515,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
             </div>
           </div>
 
-          <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-0.5 pointer-events-auto mt-2">
+          <div className="relative flex gap-1.5 overflow-x-auto no-scrollbar py-0.5 pointer-events-auto mt-2 z-10">
             {fuelTypes.map(ft => (
               <button key={ft.id} onClick={() => setActiveFuel(ft.id)} className={`flex-shrink-0 h-8 px-5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all duration-300 border ${activeFuel === ft.id ? 'bg-primary text-background-dark border-primary shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'bg-surface-darker/80 backdrop-blur-md text-slate-400 border-white/5'}`}>
                 {ft.label}
@@ -437,7 +539,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
       <div className="absolute inset-0 z-0">
         <MapContainer center={[33.5890, -7.6310]} zoom={14} zoomControl={false} className="h-full w-full">
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <MapController targetCenter={targetCenter} targetZoom={targetZoom} />
@@ -462,6 +564,26 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
             />
           )}
 
+          {/* Searched Location Marker */}
+          {searchedPlace && !isDroppingPin && (
+            <Marker
+              position={[searchedPlace.lat, searchedPlace.lng]}
+              icon={L.divIcon({
+                html: renderToStaticMarkup(
+                  <div className="relative flex flex-col items-center animate-bounce-slight">
+                    <div className="flex items-center justify-center size-10 bg-primary rounded-full shadow-[0_10px_20px_rgba(59,130,246,0.5)] border-[3px] border-white z-20">
+                      <span className="material-symbols-outlined text-white text-[22px]" style={{ fontVariationSettings: "'FILL' 1" }}>location_on</span>
+                    </div>
+                    <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[10px] border-t-primary -mt-[3px] z-10" />
+                  </div>
+                ),
+                className: 'searched-location-pin',
+                iconSize: [40, 50],
+                iconAnchor: [20, 50]
+              })}
+            />
+          )}
+
           {!isDroppingPin && displayedStations.map(station => {
             const icon = createCustomIcon(station);
             if (!icon) return null;
@@ -473,7 +595,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
       {isDroppingPin && (
         <div className="absolute inset-0 z-[2000] pointer-events-none flex flex-col items-center justify-center animate-fadeIn">
           <div className="bg-background-dark/80 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest mb-4 shadow-lg border border-white/10">
-            {t('map.dragPin')}
+            {t('map.dragPin') || 'Drag to move'}
           </div>
           <div className="size-12 -mt-16 text-accent-gold drop-shadow-[0_10px_20px_rgba(251,191,36,0.5)] animate-bounce-slight flex items-end justify-center">
             <span className="material-symbols-outlined text-[56px]" style={{ fontVariationSettings: "'FILL' 1" }}>location_on</span>
@@ -485,14 +607,49 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
                 <span className="material-symbols-outlined">close</span>
               </button>
               <button onClick={confirmPinDrop} className="flex-1 h-16 bg-accent-gold text-background-dark font-black text-lg rounded-[2rem] shadow-[0_15px_30px_rgba(251,191,36,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-widest">
-                {t('map.confirmLocation')}
+                {t('map.confirmLocation') || 'Confirm Location'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {!hideBottomCard && !isDroppingPin && cheapestNearby && (
+      {/* Searched Location Navigation Card (takes priority if active) */}
+      {!hideBottomCard && !isDroppingPin && searchedPlace && (
+        <div className="absolute bottom-4 left-4 right-4 z-[1000] pointer-events-none animate-slide-up">
+          <div className="bg-surface-darker/95 backdrop-blur-2xl rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-primary/30 pointer-events-auto overflow-hidden">
+            <div className="p-5">
+              <div className="flex justify-between items-start mb-1">
+                <div className="flex-1 pr-4">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="material-symbols-outlined text-primary text-[16px]">location_on</span>
+                    <span className="text-[10px] font-black text-primary uppercase tracking-widest">Selected Location</span>
+                  </div>
+                  <h3 className="text-lg font-black text-white leading-tight mb-1">{searchedPlace.name}</h3>
+                  <p className="text-xs font-medium text-slate-400 line-clamp-2">{searchedPlace.address}</p>
+                </div>
+                <button onClick={() => { setSearchedPlace(null); setSearchQuery(''); }} className="size-8 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all">
+                  <span className="material-symbols-outlined text-lg">close</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mt-5">
+                <button onClick={() => openWaze(searchedPlace.lat, searchedPlace.lng)} className="flex items-center justify-center gap-2 h-12 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors border border-blue-500/20 shadow-lg active:scale-95">
+                  <img src="https://cdn.simpleicons.org/waze/60a5fa" alt="Waze" className="h-5 w-5" />
+                  <span className="text-xs font-black uppercase tracking-widest">{t('station.openWaze') || 'Waze'}</span>
+                </button>
+                <button onClick={() => openGoogleMaps(searchedPlace.lat, searchedPlace.lng)} className="flex items-center justify-center gap-2 h-12 rounded-xl bg-surface-dark/60 text-slate-300 hover:bg-surface-dark transition-colors border border-white/10 shadow-lg active:scale-95">
+                  <span className="material-symbols-outlined text-lg">map</span>
+                  <span className="text-xs font-black uppercase tracking-widest">{t('station.googleMaps') || 'Google Maps'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Standard Cheapest Nearby Card */}
+      {!hideBottomCard && !isDroppingPin && !searchedPlace && cheapestNearby && (
         <div className="absolute bottom-4 left-4 right-4 z-[1000] pointer-events-none animate-slide-up">
           <div
             onTouchStart={handleCardTouchStart}
@@ -515,7 +672,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
                   </div>
                   <div>
                     <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">
-                      {isRouteMode ? t('map.cheapestRoute') : t('map.cheapestNearby')}
+                      {isRouteMode ? (t('map.cheapestRoute') || 'Cheapest on Route') : (t('map.cheapestNearby') || 'Cheapest Nearby')}
                     </p>
                     <h3 className="text-base font-black text-white truncate max-w-[160px] leading-tight mt-0.5">{cheapestNearby.name}</h3>
                   </div>
@@ -523,7 +680,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
                 <div className="text-right">
                   <p className="text-3xl font-black text-primary tracking-tighter leading-none">{cheapestNearby.prices[activeFuel]?.toFixed(2)}</p>
                   <div className="flex items-center gap-1 justify-end mt-1">
-                    <span className="text-[10px] font-black text-slate-500">{t('map.madL')}</span>
+                    <span className="text-[10px] font-black text-slate-500">{t('map.madL') || 'MAD/L'}</span>
                   </div>
                 </div>
               </div>
@@ -533,7 +690,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
                   <div className="h-px bg-white/5 w-full" />
                   <div className="flex items-center justify-around text-[10px] font-black text-slate-400 uppercase tracking-widest">
                     <span className="flex items-center gap-2"><span className="material-symbols-outlined text-primary text-[18px]">near_me</span> {cheapestNearby.distance}</span>
-                    <span className="flex items-center gap-2"><span className="material-symbols-outlined text-primary text-[18px]">timer</span> 4 {t('map.mins')}</span>
+                    <span className="flex items-center gap-2"><span className="material-symbols-outlined text-primary text-[18px]">timer</span> 4 {t('map.mins') || 'mins'}</span>
                     <span className="flex items-center gap-2">
                       <span className={`material-symbols-outlined text-[18px] ${Date.now() - cheapestNearby.lastUpdatedTimestamp > 86400000 ? 'text-slate-500' : 'text-primary'}`}>verified</span>
                       {cheapestNearby.lastUpdated?.toUpperCase() || ''}
@@ -541,7 +698,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
                   </div>
                   <div className="flex gap-3">
                     <button onClick={(e) => { e.stopPropagation(); openWaze(cheapestNearby.location.lat, cheapestNearby.location.lng); }} className="flex-1 h-16 bg-blue-500 text-white rounded-2xl font-black text-sm flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl shadow-blue-500/20">
-                      <img src="https://cdn.simpleicons.org/waze/ffffff" alt="Waze" className="h-6 w-6" /> {t('map.startJourney')}
+                      <img src="https://cdn.simpleicons.org/waze/ffffff" alt="Waze" className="h-6 w-6" /> {t('map.startJourney') || 'Start Journey'}
                     </button>
                     <button onClick={(e) => { e.stopPropagation(); onStationSelect(cheapestNearby); }} className="size-16 bg-white/5 text-white rounded-2xl flex items-center justify-center active:scale-95 border border-white/5">
                       <span className="material-symbols-outlined text-[24px]">info</span>
