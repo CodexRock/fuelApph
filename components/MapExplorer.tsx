@@ -95,7 +95,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
     setMapCenter(center);
   }, []);
 
-  const [searchResults, setSearchResults] = useState<google.maps.places.AutocompletePrediction[]>([]);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const fetchPredictions = useCallback(
@@ -103,31 +103,36 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
       if (!input.trim() || !window.google || !window.google.maps || !window.google.maps.places) return;
 
       try {
-        const places = google.maps.places as any;
+        const places = window.google.maps.places as any;
 
-        // Use the recommended modern AutocompleteSuggestion API if available
+        // Try the modern AutocompleteSuggestion API first
         if (places.AutocompleteSuggestion) {
-          const { suggestions } = await places.AutocompleteSuggestion.fetchAutocompletePredictions({
-            input,
-            includedRegionCodes: ['ma'],
-            language: 'fr'
-          });
+          try {
+            const { suggestions } = await places.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+              input,
+              includedRegionCodes: ['ma'],
+              language: 'fr'
+            });
 
-          if (suggestions) {
-            setSearchResults(suggestions.map((s: any) => ({
-              place_id: s.placePrediction.placeId,
-              description: s.placePrediction.text.text,
-              structured_formatting: {
-                main_text: s.placePrediction.text.text.split(',')[0],
-                secondary_text: s.placePrediction.text.text.split(',').slice(1).join(',').trim()
-              }
-            })));
-            return;
+            if (suggestions && suggestions.length > 0) {
+              setSearchResults(suggestions.map((s: any) => ({
+                place_id: s.placePrediction.placeId,
+                description: s.placePrediction.text.text,
+                structured_formatting: {
+                  main_text: s.placePrediction.text.text.split(',')[0],
+                  secondary_text: s.placePrediction.text.text.split(',').slice(1).join(',').trim()
+                }
+              })));
+              return;
+            }
+          } catch (modernErr) {
+            // Silently swallow and fall back to legacy
+            console.warn("Modern Places API failed, falling back to legacy:", modernErr);
           }
         }
 
-        // Fallback to the legacy AutocompleteService (still valid for many keys)
-        const service = new google.maps.places.AutocompleteService();
+        // Fallback to the stable legacy AutocompleteService
+        const service = new window.google.maps.places.AutocompleteService();
         service.getPlacePredictions(
           {
             input,
@@ -135,7 +140,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
             types: ['geocode', 'establishment']
           },
           (predictions, status) => {
-            if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+            if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
               setSearchResults(predictions);
             } else {
               setSearchResults([]);
@@ -143,7 +148,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
           }
         );
       } catch (err) {
-        console.error("Autocomplete error:", err);
+        console.error("Autocomplete fatal error:", err);
         setSearchResults([]);
       }
     }, 300),
@@ -163,7 +168,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
     setSearchResults([]);
     setIsSearchFocused(false);
 
-    const geocoder = new google.maps.Geocoder();
+    const geocoder = new window.google.maps.Geocoder();
     geocoder.geocode({ placeId }, (results, status) => {
       if (status === 'OK' && results?.[0]) {
         const { lat, lng } = results[0].geometry.location;
