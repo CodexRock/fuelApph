@@ -48,6 +48,12 @@ export const NearbyList: React.FC<NearbyListProps> = ({
         query = query.in('brand', searchFilters.selectedBrands);
       }
 
+      if (searchFilters?.query && searchFilters.query.trim() !== '') {
+        const q = searchFilters.query.toLowerCase();
+        // Search in station name or city (location is jsonb)
+        query = query.or(`name.ilike.%${q}%,location->>city.ilike.%${q}%,location->>address.ilike.%${q}%`);
+      }
+
       const { data, error } = await query;
       if (data && !error) {
         let filteredData = data;
@@ -62,15 +68,6 @@ export const NearbyList: React.FC<NearbyListProps> = ({
           filteredData = filteredData.filter((s: any) => s.prices && s.prices[searchFilters.selectedFuel as keyof typeof s.prices]);
         }
 
-        if (searchFilters?.query && searchFilters.query.trim() !== '') {
-          const q = searchFilters.query.toLowerCase();
-          filteredData = filteredData.filter((s: any) =>
-            s.name.toLowerCase().includes(q) ||
-            s.location.city.toLowerCase().includes(q) ||
-            s.location.address.toLowerCase().includes(q)
-          );
-        }
-
         if (userLocation) {
           filteredData = filteredData.map((s: any) => ({
             ...s,
@@ -82,7 +79,6 @@ export const NearbyList: React.FC<NearbyListProps> = ({
       }
       setLoading(false);
     };
-    fetchStations();
     fetchStations();
   }, []);
 

@@ -20,9 +20,8 @@ export const LanguageSettings: React.FC<{ onBack: () => void }> = ({ onBack }) =
           <div className="space-y-3">
             <button
               onClick={() => setLanguage('en')}
-              className={`w-full flex items-center justify-between p-5 rounded-2xl border transition-all ${
-                language === 'en' ? 'bg-primary/10 border-primary text-white' : 'bg-surface-dark border-white/5 text-slate-400'
-              }`}
+              className={`w-full flex items-center justify-between p-5 rounded-2xl border transition-all ${language === 'en' ? 'bg-primary/10 border-primary text-white' : 'bg-surface-dark border-white/5 text-slate-400'
+                }`}
             >
               <div className="flex items-center gap-4">
                 <span className="text-2xl">🇬🇧</span>
@@ -33,15 +32,26 @@ export const LanguageSettings: React.FC<{ onBack: () => void }> = ({ onBack }) =
 
             <button
               onClick={() => setLanguage('fr')}
-              className={`w-full flex items-center justify-between p-5 rounded-2xl border transition-all ${
-                language === 'fr' ? 'bg-primary/10 border-primary text-white' : 'bg-surface-dark border-white/5 text-slate-400'
-              }`}
+              className={`w-full flex items-center justify-between p-5 rounded-2xl border transition-all ${language === 'fr' ? 'bg-primary/10 border-primary text-white' : 'bg-surface-dark border-white/5 text-slate-400'
+                }`}
             >
               <div className="flex items-center gap-4">
                 <span className="text-2xl">🇫🇷</span>
                 <span className="font-bold text-sm">Français</span>
               </div>
               {language === 'fr' && <span className="material-symbols-outlined text-primary">check_circle</span>}
+            </button>
+
+            <button
+              onClick={() => setLanguage('ar')}
+              className={`w-full flex items-center justify-between p-5 rounded-2xl border transition-all ${language === 'ar' ? 'bg-primary/10 border-primary text-white' : 'bg-surface-dark border-white/5 text-slate-400'
+                }`}
+            >
+              <div className="flex items-center gap-4">
+                <span className="text-2xl">🇲🇦</span>
+                <span className="font-bold text-sm">العربية</span>
+              </div>
+              {language === 'ar' && <span className="material-symbols-outlined text-primary">check_circle</span>}
             </button>
           </div>
         </section>

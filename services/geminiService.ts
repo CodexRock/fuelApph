@@ -5,7 +5,7 @@ const genAI = new GoogleGenerativeAI(API_KEY);
 
 export async function extractFuelPriceFromImage(base64Image: string) {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const result = await model.generateContent([
       {
@@ -44,7 +44,7 @@ export async function extractFuelPriceFromImage(base64Image: string) {
 
 export async function processVoiceReport(prompt: string) {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     const result = await model.generateContent(`Parse this voice input into fuel price data for Morocco: "${prompt}". Return ONLY a JSON object with keys: price (number), fuelType (one of: Diesel, Sans Plomb, Premium). If the user doesn't say the fuel type, default to Diesel.`);
     const response = await result.response;
     const text = response.text();

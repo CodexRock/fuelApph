@@ -227,7 +227,7 @@ export const Rewards: React.FC<RewardsProps> = ({ showAlert }) => {
                     <span>{t('rewards.goldTarget')}</span>
                   </div>
                   <div className="h-1.5 w-full rounded-full bg-black/40 overflow-hidden">
-                    <div className="h-full bg-primary rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" style={{ width: '81%' }}></div>
+                    <div className="h-full bg-primary rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" style={{ width: `${Math.min((points / 3000) * 100, 100)}%` }}></div>
                   </div>
                 </div>
               </div>

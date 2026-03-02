@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 
-export type Language = 'fr' | 'en';
+export type Language = 'fr' | 'en' | 'ar';
 
 interface Translations {
   [key: string]: any;
@@ -367,7 +367,21 @@ const en: Translations = {
     newPassword: 'New Password',
     updatePassword: 'Update Password',
     resetSuccess: 'Password updated successfully! You can now sign in.',
-    checkEmail: 'Check your email for the reset link.'
+    checkEmail: 'Check your email for the reset link.',
+    fullName: 'Full Name',
+    fullNamePlaceholder: 'Ahmed Benali',
+    passwordHint: 'Password must be at least 6 characters',
+    continueGoogle: 'Continue with Google',
+    continueFacebook: 'Continue with Facebook',
+    continueApple: 'Continue with Apple',
+    orEmail: 'or with email',
+    errorInvalidCredentials: 'Incorrect email or password.',
+    errorAlreadyRegistered: 'This email is already registered. Try signing in.',
+    errorEmailNotConfirmed: 'Please check your email to confirm your account.',
+    errorWeakPassword: 'Password is too weak. Use at least 6 characters.',
+    errorRateLimit: 'Too many attempts. Please wait a moment.',
+    errorNetwork: 'Connection error. Check your internet.',
+    errorNameRequired: 'Please enter your full name.'
   }
 };
 
@@ -732,11 +746,404 @@ const fr: Translations = {
     newPassword: 'Nouveau mot de passe',
     updatePassword: 'Mettre à jour le mot de passe',
     resetSuccess: 'Mot de passe mis à jour avec succès ! Vous pouvez maintenant vous connecter.',
-    checkEmail: 'Consultez vos e-mails pour le lien de réinitialisation.'
+    checkEmail: 'Consultez vos e-mails pour le lien de réinitialisation.',
+    fullName: 'Nom complet',
+    fullNamePlaceholder: 'Ahmed Benali',
+    passwordHint: 'Le mot de passe doit contenir au moins 6 caractères',
+    continueGoogle: 'Continuer avec Google',
+    continueFacebook: 'Continuer avec Facebook',
+    continueApple: 'Continuer avec Apple',
+    orEmail: 'ou par e-mail',
+    errorInvalidCredentials: 'E-mail ou mot de passe incorrect.',
+    errorAlreadyRegistered: 'Cet e-mail est déjà enregistré. Essayez de vous connecter.',
+    errorEmailNotConfirmed: 'Veuillez vérifier vos e-mails pour confirmer votre compte.',
+    errorWeakPassword: 'Mot de passe trop faible. Utilisez au moins 6 caractères.',
+    errorRateLimit: 'Trop de tentatives. Veuillez patienter.',
+    errorNetwork: 'Erreur de connexion. Vérifiez votre connexion internet.',
+    errorNameRequired: 'Veuillez entrer votre nom complet.'
   }
 };
 
-const translations = { fr, en };
+const ar: Translations = {
+  nav: {
+    explore: 'استكشاف',
+    search: 'بحث',
+    scan: 'مسح',
+    rewards: 'مكافآت',
+    profile: 'الملف'
+  },
+  onboarding: {
+    title: 'وفّر على كل',
+    titleHighlight: 'لتر.',
+    subtitle: 'انضم إلى أكبر مجتمع سائقين في المغرب للعثور على أفضل أسعار الوقود في الوقت الفعلي.',
+    getStarted: 'ابدأ الآن',
+    locationTitle: 'العثور على محطات قريبة',
+    locationSubtitle: 'يحتاج FuelSpy إلى موقعك لإظهار أرخص المحطات القريبة منك.',
+    allowLocation: 'السماح بالوصول للموقع',
+    skip: 'تخطي الآن'
+  },
+  app: {
+    snapSave: 'صوّر ووفّر',
+    snapDesc: 'أبلغ عن لوحة أسعار أي محطة لكسب المكافآت. الذكاء الاصطناعي يتحقق فوراً.',
+    startScanning: 'ابدأ المسح',
+    unknown: 'غير معروف',
+    searchResults: 'نتائج البحث',
+    locationRequired: 'يجب تفعيل الموقع للإبلاغ عن الأسعار أو تأكيدها.',
+    tooFar: 'يجب أن تكون على بعد 150 متراً من المحطة للإبلاغ أو التأكيد.',
+    error: 'حدث خطأ.',
+    success: 'تم بنجاح!',
+    cancel: 'إلغاء',
+    confirm: 'تأكيد',
+    ok: 'موافق',
+    locationReminderTitle: 'الموقع مطلوب',
+    locationReminderDesc: 'مرحباً! لا يمكنك إضافة أو تأكيد الأسعار وكسب النقاط بدون تفعيل الموقع. فعّل الموقع للعثور على أقرب المحطات واستخدام التطبيق بالكامل!'
+  },
+  profile: {
+    level: 'مست.',
+    expertTracker: 'متتبع خبير • ضمن أفضل 1% في الرباط',
+    savings: 'التوفير',
+    reports: 'البلاغات',
+    rank: 'الترتيب',
+    leaderboard: 'لوحة المتصدرين',
+    leaderboardDesc: 'تحقق من ترتيبك',
+    referrals: 'الإحالات',
+    referralsDesc: 'اكسب 100 نقطة',
+    fuelLogs: 'سجل الوقود',
+    fuelLogsDesc: 'تتبع الاستهلاك',
+    badges: 'الشارات',
+    badgesDesc: '12/45 مفتوحة',
+    vehicleSettings: 'إعدادات المركبة',
+    paymentMethods: 'طرق الدفع',
+    accountSecurity: 'أمان الحساب',
+    helpCenter: 'مركز المساعدة',
+    language: 'اللغة',
+    languageDesc: 'العربية / Français / English',
+    signOut: 'تسجيل الخروج'
+  },
+  languageSettings: {
+    title: 'اللغة',
+    select: 'اختر اللغة المفضلة:'
+  },
+  map: {
+    searchPlaceholder: 'ابحث عن مدينة... (اضغط Enter)',
+    startLocation: 'البداية: موقعك الحالي',
+    route: 'المسار',
+    whereTo: 'إلى أين تذهب؟',
+    dragPin: 'اسحب الخريطة لوضع العلامة',
+    confirmLocation: 'تأكيد الموقع',
+    locationNotFound: 'الموقع غير موجود. جرب مدينة أو منطقة أخرى في المغرب.',
+    cheapestRoute: 'الأرخص على المسار',
+    cheapestNearby: 'الأرخص بالقرب',
+    madL: 'د.م / لتر',
+    mins: 'دقائق',
+    startJourney: 'ابدأ الرحلة'
+  },
+  station: {
+    mapImport: 'مستورد من الخريطة',
+    beFirst: 'كن الأول!',
+    ghostDesc: 'خرائط Google تشير إلى وجود محطة {brand} هنا. تحقق منها بمسح لوحة الأسعار لكسب مكافأة الرائد.',
+    scanNow: 'امسح الأسعار الآن +500 نقطة',
+    enterManually: 'أو أدخل يدوياً',
+    diesel: 'ديزل',
+    sansPlomb: 'بنزين',
+    premium: 'ممتاز',
+    needsVerification: 'يحتاج تحقق',
+    verifiedBy: 'تم التحقق بواسطة',
+    community: 'المجتمع',
+    openWaze: 'فتح Waze',
+    googleMaps: 'خرائط Google',
+    confirmPrices: 'تأكيد الأسعار الحالية',
+    verified10: 'تم التحقق! +10 نقاط',
+    reportChange: 'الإبلاغ عن تغيير',
+    scanBoard: 'مسح لوحة الأسعار',
+    aiVerification: 'تحقق بالذكاء الاصطناعي',
+    voice: 'صوتي',
+    manual: 'يدوي',
+    openNow: 'مفتوح الآن',
+    drive: 'اذهب',
+    earn50: 'اكسب +50 نقطة',
+    availableServices: 'الخدمات المتاحة',
+    ratingStation: 'جاري التقييم...',
+    close: 'إغلاق'
+  },
+  nearby: {
+    nearbyStations: 'محطات قريبة',
+    map: 'خريطة',
+    searchArea: 'ابحث عن منطقة أو محطة...',
+    cheapest: 'الأرخص',
+    nearest: 'الأقرب',
+    verified: 'مُحقق',
+    bestPrice: 'أفضل سعر',
+    noStationsFound: 'لم يتم العثور على محطات تطابق معاييرك.'
+  },
+  search: {
+    findFuel: 'ابحث عن وقود',
+    searchPlaceholder: 'ابحث عن محطة أو مدينة...',
+    cheapest: 'الأرخص',
+    nearest: 'الأقرب',
+    myRewards: 'مكافآتي',
+    recentSearches: 'عمليات بحث حديثة',
+    clear: 'مسح',
+    away: 'بعيد',
+    popularCities: 'مدن شائعة',
+    stations: 'محطات',
+    filterBrand: 'تصفية حسب العلامة التجارية',
+    amenities: 'الخدمات',
+    fuelType: 'نوع الوقود',
+    applyFilters: 'تطبيق الفلاتر',
+    showResults: 'عرض النتائج'
+  },
+  amenities: {
+    'Café': 'مقهى',
+    'Shop': 'متجر',
+    'Air': 'هواء',
+    'WC': 'مرحاض',
+    'Mosque': 'مسجد',
+    'ATM': 'صراف آلي',
+    'Car Wash': 'غسيل سيارات',
+    'EV Charge': 'شحن كهربائي'
+  },
+  scanFlow: {
+    pointBoard: 'وجّه الكاميرا نحو لوحة الأسعار',
+    aiDetect: 'الذكاء الاصطناعي سيكتشف الوقود والأسعار تلقائياً',
+    analyzing: 'جاري التحليل',
+    glareFallback: 'في حال وجود انعكاس، سننتقل للإدخال اليدوي...',
+    verifyDetails: 'تحقق من التفاصيل',
+    confirmInfo: 'تأكد أن المعلومات المكتشفة صحيحة',
+    detectedFuel: 'الوقود المكتشف',
+    pricePerLiter: 'السعر لكل لتر (د.م)',
+    tapToType: 'اضغط للكتابة أو استخدم +/-',
+    looksGood: 'يبدو صحيحاً، إرسال',
+    editManually: 'تعديل يدوياً'
+  },
+  manualReport: {
+    reportPrice: 'الإبلاغ عن سعر',
+    confirmPrice: 'تأكيد السعر',
+    change: 'تغيير'
+  },
+  voiceReport: {
+    title: 'الإبلاغ الصوتي',
+    listening: 'جاري الاستماع...',
+    verifyResult: 'تحقق من النتيجة',
+    instruction: 'أخبرني نوع الوقود والسعر',
+    example: '(مثال: "ديزل 12.50")',
+    adjustManual: 'عدّل التفاصيل يدوياً إذا أخطأ الذكاء الاصطناعي',
+    fuelType: 'نوع الوقود',
+    priceMad: 'السعر (د.م)',
+    tapToAdjust: 'اضغط +/- للتعديل',
+    retake: 'إعادة',
+    confirm: 'تأكيد'
+  },
+  addStation: {
+    title: 'إضافة محطة جديدة',
+    pioneerReward: 'مكافأة الرائد: +200 نقطة',
+    selectBrand: 'اختر العلامة التجارية',
+    whatStation: 'ما هي محطة الوقود الموجودة هنا؟',
+    nextStep: 'الخطوة التالية',
+    station: 'محطة',
+    currentDieselPrice: 'سعر الديزل الحالي',
+    madLiter: 'د.م / لتر',
+    claimReward: 'اطلب المكافأة'
+  },
+  contributionSuccess: {
+    stationAdded: 'تمت إضافة المحطة!',
+    priceVerified: 'تم التحقق من السعر!',
+    pioneerMsg: 'أنت رائد في المجتمع',
+    thanksMsg: 'شكراً لتحديث الأسعار',
+    calculating: 'جاري حساب المكافأة...',
+    pioneerBonus: 'مكافأة الرائد',
+    mysteryReward: 'مكافأة غامضة',
+    contributionLogged: 'تم تسجيل المساهمة',
+    contributionVerified: 'تم التحقق من المساهمة',
+    wait: 'انتظر...',
+    returnToMap: 'رائع، العودة للخريطة'
+  },
+  rewards: {
+    shopTitle: 'متجر المكافآت',
+    walletTitle: 'محفظتي',
+    wallet: 'المحفظة',
+    shop: 'المتجر',
+    availableBalance: 'الرصيد المتاح',
+    silverMember: 'عضو فضي',
+    goldTarget: 'ذهبي (3,000 نقطة)',
+    hotDeal: 'عرض مميز',
+    limitedTime: 'لفترة محدودة',
+    hotDealTitle: 'إسبريسو مجاني في TotalEnergies',
+    hotDealDesc: 'صالح في جميع مقاهي محطات الطرق السريعة',
+    redeemNow: 'استبدل الآن',
+    redeem: 'استبدال',
+    goals: 'الأهداف',
+    keepEarning: 'استمر في الكسب',
+    oilChange: 'تغيير زيت كامل',
+    progress: 'التقدم',
+    lifetimeSavings: 'إجمالي التوفير',
+    savedThisMonth: 'تم توفير هذا الشهر: +{value} د.م',
+    active: 'نشطة',
+    history: 'السجل',
+    expiresSoon: 'ينتهي قريباً',
+    presentQr: 'اعرض رمز QR على عامل المحطة قبل الدفع.',
+    voucherCode: 'رمز القسيمة',
+    markAsUsed: 'تحديد كمُستخدم',
+    noVouchers: 'لا توجد قسائم نشطة بعد',
+    visitShop: 'زيارة المتجر',
+    confirmRedeemTitle: 'تأكيد الاستبدال',
+    confirmRedeemDesc: 'هل أنت متأكد من استبدال نقاطك بهذه القسيمة؟',
+    notEnoughPoints: 'نقاط غير كافية لهذه القسيمة.',
+    redeemSuccess: 'تم استبدال القسيمة بنجاح!',
+    pts: 'نقطة',
+    mad: 'د.م',
+    cats: { all: 'الكل', fuel: 'وقود', wash: 'غسيل', food: 'طعام' },
+    items: {
+      washTitle: 'غسيل سيارة أساسي', washDesc: 'غسيل خارجي ولمعان الإطارات في المحطات المشاركة.',
+      fuelTitle: 'قسيمة وقود 50 د.م', fuelDesc: 'خصم على التعبئة القادمة في أفريقيا.',
+      foodTitle: 'وجبة إفطار', foodDesc: 'قهوة وكرواسون في Shell Select.',
+      fluidTitle: 'سائل مسّاحات 1 لتر', fluidDesc: 'سائل مسّاحات عالي الجودة.'
+    }
+  },
+  leaderboard: {
+    topReporters: 'أفضل المبلغين',
+    localTab: 'المعاريف (محلي)',
+    globalTab: 'المغرب (عام)',
+    restOfPack: 'بقية المتصدرين',
+    updatedAgo: 'تم التحديث منذ 5 دقائق',
+    yourRank: 'ترتيبك',
+    topLocal: 'ضمن أفضل 1% في المعاريف',
+    topGlobal: 'ضمن أفضل 12% عالمياً',
+    spots: 'مراكز'
+  },
+  referrals: {
+    title: 'دعوة الأصدقاء',
+    shareSavings: 'شارك التوفير.',
+    desc1: 'أنت وصديقك تحصلان على ',
+    desc2: '100 نقطة',
+    desc3: ' عندما يمسح أول إيصال.',
+    step1: 'أرسل الرابط',
+    step2: 'يمسحون',
+    step3: 'كلاكما يكسب',
+    yourCode: 'رمزك الشخصي',
+    inviteNow: 'ادعُ الآن'
+  },
+  vehicleLog: {
+    title: 'مركبتي',
+    newLog: 'سجل وقود جديد',
+    avgUsage: 'متوسط الاستهلاك',
+    lower: 'أقل',
+    totalCost: 'التكلفة الإجمالية',
+    last30Days: 'آخر 30 يوماً',
+    efficiencyTrend: 'اتجاه الكفاءة',
+    sixMonths: '6 أشهر',
+    recentLogs: 'سجلات حديثة',
+    months: { may: 'مايو', aug: 'أغسطس', oct: 'أكتوبر' },
+    stationName: 'اسم المحطة',
+    cost: 'التكلفة (د.م)',
+    volume: 'الحجم (لتر)',
+    odometer: 'عداد المسافة (كم)',
+    saveLog: 'حفظ',
+    saving: 'جاري الحفظ...',
+    cancel: 'إلغاء'
+  },
+  notifications: {
+    title: 'النشاط',
+    markAll: 'تحديد الكل',
+    today: 'اليوم',
+    yesterday: 'أمس',
+    notifs: {
+      dropTitle: 'تنبيه انخفاض السعر', dropMsg: 'أسعار Shell انخفضت -0.50 د.م بالقرب من وسط الدار البيضاء.',
+      rewardTitle: 'تم التحقق من البلاغ!', rewardMsg: 'تم التحقق من بلاغك لأفريقيا. كسبت +50 نقطة.',
+      rankTitle: 'ترقية!', rankMsg: 'دخلت ضمن أفضل 100 مُبلغ في الرباط. استمر!'
+    }
+  },
+  badges: {
+    title: 'رحلتي',
+    totalBadges: 'إجمالي الشارات',
+    eliteTier: 'المستوى النخبوي',
+    list: {
+      b1: 'أول مسح', b2: 'المراقب', b3: 'الباكر',
+      b4: 'بطل الطريق السريع', b5: 'مستكشف الأطلس', b6: 'بومة الليل',
+      b7: 'الكشّاف المُحقق', b8: 'صانع الاتجاه', b9: 'ركيزة المجتمع'
+    }
+  },
+  helpCenter: {
+    title: 'مركز المساعدة',
+    search: 'ابحث عن مواضيع...',
+    faqTitle: 'الأسئلة الشائعة',
+    faqs: {
+      q1: 'كيف تعمل النقاط؟', a1: 'اكسب نقاطاً بالإبلاغ عن أسعار الوقود. 10 نقاط لكل بلاغ، 50 إذا تم التحقق.',
+      q2: 'أين أستخدم قسائمي؟', a2: 'القسائم صالحة في جميع محطات Shell وأفريقيا وTotalEnergies المشاركة.',
+      q3: 'أسعار غير صحيحة؟', a3: 'المستخدمون ذوو درجة ثقة عالية يتم التحقق منهم فوراً. الآخرون يحتاجون تأكيد المجتمع.'
+    },
+    stillNeedHelp: 'لا تزال بحاجة للمساعدة؟',
+    support247: 'فريق الدعم متاح على مدار الساعة',
+    contactSupport: 'التواصل مع الدعم'
+  },
+  vehicleSettings: {
+    title: 'إعدادات المركبة',
+    category: 'نوع المركبة',
+    personal: 'شخصية',
+    taxi: 'سيارة أجرة',
+    truck: 'شاحنة',
+    coreInfo: 'المعلومات الأساسية',
+    modelName: 'اسم الطراز',
+    odometer: 'عداد المسافة',
+    primaryFuel: 'الوقود الأساسي',
+    saveChanges: 'حفظ التغييرات'
+  },
+  paymentMethods: {
+    title: 'المدفوعات',
+    savedCards: 'البطاقات المحفوظة',
+    expires: 'ينتهي',
+    primary: 'أساسية',
+    addNew: 'إضافة طريقة دفع جديدة',
+    digitalWallets: 'المحافظ الرقمية'
+  },
+  securitySettings: {
+    title: 'الأمان',
+    auth: 'المصادقة',
+    changePass: 'تغيير كلمة المرور',
+    lastChanged: 'آخر تغيير منذ 3 أشهر',
+    twoFactor: 'المصادقة الثنائية',
+    highlyRec: 'موصى به بشدة',
+    biometrics: 'البيومترية',
+    faceId: 'بصمة الوجه / الإصبع',
+    fastLogin: 'تسجيل دخول وإبلاغ سريع'
+  },
+  auth: {
+    welcome: 'مرحباً بعودتك',
+    create: 'إنشاء حساب',
+    email: 'البريد الإلكتروني',
+    password: 'كلمة المرور',
+    signIn: 'تسجيل الدخول',
+    signUp: 'إنشاء حساب',
+    processing: 'جاري المعالجة...',
+    noAccount: 'ليس لديك حساب؟ سجّل الآن',
+    hasAccount: 'لديك حساب بالفعل؟ سجّل الدخول',
+    failed: 'فشل المصادقة',
+    forgotPassword: 'نسيت كلمة المرور؟',
+    resetPassword: 'إعادة تعيين كلمة المرور',
+    sendResetLink: 'إرسال رابط إعادة التعيين',
+    backToLogin: 'العودة لتسجيل الدخول',
+    newPassword: 'كلمة المرور الجديدة',
+    updatePassword: 'تحديث كلمة المرور',
+    resetSuccess: 'تم تحديث كلمة المرور بنجاح! يمكنك الآن تسجيل الدخول.',
+    checkEmail: 'تحقق من بريدك الإلكتروني لرابط إعادة التعيين.',
+    fullName: 'الاسم الكامل',
+    fullNamePlaceholder: 'أحمد البنعلي',
+    passwordHint: 'كلمة المرور يجب أن تحتوي على 6 أحرف على الأقل',
+    continueGoogle: 'المتابعة مع Google',
+    continueFacebook: 'المتابعة مع Facebook',
+    continueApple: 'المتابعة مع Apple',
+    orEmail: 'أو بالبريد الإلكتروني',
+    errorInvalidCredentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
+    errorAlreadyRegistered: 'هذا البريد الإلكتروني مسجل بالفعل. جرب تسجيل الدخول.',
+    errorEmailNotConfirmed: 'يرجى التحقق من بريدك الإلكتروني لتأكيد حسابك.',
+    errorWeakPassword: 'كلمة المرور ضعيفة جداً. استخدم 6 أحرف على الأقل.',
+    errorRateLimit: 'محاولات كثيرة جداً. يرجى الانتظار.',
+    errorNetwork: 'خطأ في الاتصال. تحقق من الإنترنت.',
+    errorNameRequired: 'يرجى إدخال اسمك الكامل.'
+  }
+};
+
+const translations: Record<Language, Translations> = { fr, en, ar };
 
 interface LanguageContextType {
   language: Language;
@@ -747,7 +1154,23 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('fr');
+  const [language, setLanguageState] = useState<Language>(() => {
+    return (localStorage.getItem('fuelspy_language') as Language) || 'fr';
+  });
+
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+    localStorage.setItem('fuelspy_language', lang);
+    // Set document direction for RTL support
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = lang;
+  };
+
+  // Set initial direction on mount
+  React.useEffect(() => {
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = language;
+  }, []);
 
   const t = (path: string) => {
     const keys = path.split('.');

@@ -28,16 +28,13 @@ export async function syncNewStations(discoveredStations: Station[], dbStations:
         location: s.location,
         lat: s.location.lat,
         lng: s.location.lng,
-        prices: {
-            'Diesel': 10.80,
-            'Sans Plomb': 12.49
-        },
+        prices: {},
         last_updated: new Date().toISOString(),
         last_updated_timestamp: Date.now(),
-        verified_by: ADMIN_ID,
+        verified_by: process.env.VITE_ADMIN_USER_ID || ADMIN_ID,
         status: 'Open',
-        trust_score: 1,
-        is_ghost: false
+        trust_score: 0,
+        is_ghost: true
     }));
 
     try {

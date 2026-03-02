@@ -7,6 +7,7 @@ import { fetchStationsInBounds } from '../services/placesService';
 import { getShortBrand, getTimeAgo, isValidStation } from '../utils/brands';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../i18n/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { calculateDistance } from '../utils/distance';
 import { MoroccoRestrictionModal } from './MoroccoRestrictionModal';
 import { isInsideMorocco } from '../utils/location';
@@ -56,6 +57,20 @@ const BoundsTracker: React.FC<{ onBoundsChange: (bounds: L.LatLngBounds, center:
   }, [map, onBoundsChange]);
 
   return null;
+};
+
+// Theme-aware map tile layer — dark tiles for dark mode, standard tiles for light mode
+const ThemeAwareTileLayer: React.FC = () => {
+  const { theme } = useTheme();
+  const darkUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+  const lightUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+  return (
+    <TileLayer
+      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      url={theme === 'dark' ? darkUrl : lightUrl}
+      key={theme} // Force re-render when theme changes
+    />
+  );
 };
 
 const MapController: React.FC<{ targetCenter: L.LatLng | null; targetZoom?: number | null }> = ({ targetCenter, targetZoom }) => {
@@ -560,15 +575,40 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
               </div>
 
               {isRouteMode && (
-                <div className="flex items-center gap-2 h-10 border-t border-white/10 mt-1 pt-1 animate-slide-up">
-                  <span className="material-symbols-outlined text-red-500 text-[20px]">location_on</span>
-                  <input
-                    type="text"
-                    placeholder={t('map.whereTo') || 'Where to?'}
-                    value={destination}
-                    onChange={(e) => setDestination(e.target.value)}
-                    className="bg-transparent border-none outline-none flex-1 text-xs font-bold text-white placeholder:text-slate-500 focus:ring-0"
-                  />
+                <div className="flex flex-col gap-2 mt-1 pt-2 border-t border-white/10 animate-slide-up">
+                  <div className="flex items-center gap-2 h-10">
+                    <span className="material-symbols-outlined text-red-500 text-[20px]">location_on</span>
+                    <input
+                      type="text"
+                      placeholder={t('map.whereTo') || 'Where to?'}
+                      value={destination}
+                      onChange={(e) => setDestination(e.target.value)}
+                      className="bg-transparent border-none outline-none flex-1 text-xs font-bold text-white placeholder:text-slate-500 focus:ring-0"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        const originParams = searchQuery ? `&origin=${encodeURIComponent(searchQuery)}` : '';
+                        const destParams = `&destination=${encodeURIComponent(destination || 'Morocco')}`;
+                        window.open(`https://www.google.com/maps/dir/?api=1${originParams}${destParams}`, '_blank');
+                      }}
+                      disabled={!destination && !searchQuery}
+                      className="flex-1 h-10 bg-surface-dark rounded-xl flex items-center justify-center gap-2 border border-white/5 active:scale-95 transition-all text-xs font-bold text-slate-300 disabled:opacity-50"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">map</span> Google Maps
+                    </button>
+                    <button
+                      onClick={() => {
+                        const q = encodeURIComponent(destination || searchQuery || 'Morocco');
+                        window.open(`waze://?q=${q}&navigate=yes`, '_blank');
+                      }}
+                      disabled={!destination && !searchQuery}
+                      className="flex-1 h-10 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center gap-2 border border-blue-500/20 active:scale-95 transition-all text-xs font-bold disabled:opacity-50"
+                    >
+                      <img src="https://cdn.simpleicons.org/waze/60a5fa" alt="Waze" className="h-4 w-4" /> Waze
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -586,7 +626,19 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
 
       {!isDroppingPin && (
         <div className={`absolute right-4 z-[1000] flex flex-col gap-3 pointer-events-auto transition-all duration-300 ${hideBottomCard ? 'top-40' : 'top-[50%] -translate-y-1/2'}`}>
-          <button className="size-12 bg-surface-darker/90 backdrop-blur-xl rounded-[1.25rem] shadow-2xl flex items-center justify-center text-primary border border-white/5 active:scale-90 transition-all">
+          <button onClick={() => {
+            if (userLocation) {
+              setTargetCenter(new L.LatLng(userLocation.lat, userLocation.lng));
+              setTargetZoom(16);
+            } else {
+              navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                  setTargetCenter(new L.LatLng(pos.coords.latitude, pos.coords.longitude));
+                  setTargetZoom(16);
+                }
+              );
+            }
+          }} className="size-12 bg-surface-darker/90 backdrop-blur-xl rounded-[1.25rem] shadow-2xl flex items-center justify-center text-primary border border-white/5 active:scale-90 transition-all">
             <span className="material-symbols-outlined text-[26px]">my_location</span>
           </button>
           <button onClick={() => { setIsDroppingPin(true); setDropPinPosition(mapCenter); }} className="size-12 bg-accent-gold/90 backdrop-blur-xl rounded-[1.25rem] shadow-[0_10px_30px_rgba(251,191,36,0.3)] flex items-center justify-center text-background-dark border border-accent-gold active:scale-90 transition-all">
@@ -597,10 +649,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
 
       <div className="absolute inset-0 z-0">
         <MapContainer center={[33.5890, -7.6310]} zoom={14} zoomControl={false} attributionControl={false} className="h-full w-full">
-          <TileLayer
-            attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+          <ThemeAwareTileLayer />
           <MapController targetCenter={targetCenter} targetZoom={targetZoom} />
           <MapEventsHandler />
 

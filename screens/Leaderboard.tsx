@@ -12,7 +12,9 @@ interface RankingUser {
   img: string;
 }
 
-export const Leaderboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+import { User as AppUser } from '../types';
+
+export const Leaderboard: React.FC<{ onBack: () => void; currentUser?: AppUser | null }> = ({ onBack, currentUser }) => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'local' | 'global'>('local');
 
@@ -49,14 +51,18 @@ export const Leaderboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data: rank, error: rankError } = await supabase.rpc('get_user_rank', { user_id: user.id });
-        if (!rankError) {
+        if (!rankError && rank) {
           setUserRank(rank);
+        } else if (currentUser?.globalRank) {
+          setUserRank(currentUser.globalRank);
         }
+      } else if (currentUser?.globalRank) {
+        setUserRank(currentUser.globalRank);
       }
     };
 
     fetchRankings();
-  }, []);
+  }, [currentUser]);
 
   const currentRankings = activeTab === 'local' ? localRankings.slice(3) : globalRankings.slice(3);
 
@@ -133,11 +139,17 @@ export const Leaderboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       <div className="fixed bottom-[104px] left-4 right-4 z-50">
         <div className="bg-primary/95 backdrop-blur-xl border border-white/20 p-4 rounded-[2.5rem] shadow-2xl flex items-center justify-between text-background-dark animate-slide-up">
           <div className="flex items-center gap-4">
-            <div className="size-12 rounded-full border-2 border-background-dark/20 p-0.5">
-              <img src="https://i.pravatar.cc/100?u=me" className="size-full rounded-full" alt="Me" />
+            <div className="size-12 rounded-full border-2 border-background-dark/20 p-0.5 bg-white/20">
+              <img
+                src={currentUser?.id ? `https://i.pravatar.cc/100?u=${currentUser.id}` : "https://i.pravatar.cc/100?u=me"}
+                className="size-full rounded-full"
+                alt={currentUser?.name || "Me"}
+              />
             </div>
             <div>
-              <p className="font-black text-base leading-tight">{t('leaderboard.yourRank')}</p>
+              <p className="font-black text-base leading-tight truncate max-w-[120px]">
+                {currentUser?.name || t('leaderboard.yourRank')}
+              </p>
               <p className="text-[10px] font-black uppercase opacity-70">
                 {activeTab === 'local' ? t('leaderboard.topLocal') : t('leaderboard.topGlobal')}
               </p>

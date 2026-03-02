@@ -15,7 +15,7 @@ export const ContributionSuccess: React.FC<ContributionSuccessProps> = ({ onDone
 
   const targetPoints = useMemo(() => {
     if (earnedPointsProp !== undefined && earnedPointsProp > 0) return earnedPointsProp;
-    return isPioneer ? 200 : Math.floor(Math.random() * 481) + 20;
+    return isPioneer ? 200 : 50; // Fixed: 200 for pioneer, 50 for standard report
   }, [isPioneer, earnedPointsProp]);
 
   useEffect(() => {
@@ -73,8 +73,8 @@ export const ContributionSuccess: React.FC<ContributionSuccessProps> = ({ onDone
 
           {/* THE SMOOTH COUNT-UP REWARD DISPLAY */}
           <div className={`relative flex flex-col items-center justify-center w-full aspect-square max-w-[280px] rounded-[3rem] border-4 transition-all duration-500 shadow-2xl ${isSpinning
-              ? 'border-primary/50 bg-surface-darker shadow-[0_0_50px_rgba(59,130,246,0.3)] animate-pulse'
-              : 'border-accent-gold/80 bg-gradient-to-br from-surface-dark to-surface-darker shadow-[0_0_80px_rgba(251,191,36,0.4)] scale-105'
+            ? 'border-primary/50 bg-surface-darker shadow-[0_0_50px_rgba(59,130,246,0.3)] animate-pulse'
+            : 'border-accent-gold/80 bg-gradient-to-br from-surface-dark to-surface-darker shadow-[0_0_80px_rgba(251,191,36,0.4)] scale-105'
             }`}>
             <span className={`text-sm font-black uppercase tracking-[0.3em] mb-2 transition-colors ${isSpinning ? 'text-primary' : 'text-accent-gold'}`}>
               {isSpinning ? t('contributionSuccess.calculating') : (isPioneer ? t('contributionSuccess.pioneerBonus') : t('contributionSuccess.mysteryReward'))}
@@ -115,12 +115,25 @@ export const ContributionSuccess: React.FC<ContributionSuccessProps> = ({ onDone
 
         {/* Bottom Section: Actions */}
         <div className="mt-8 space-y-4 w-full">
+          {!isSpinning && (
+            <button
+              onClick={() => {
+                const text = `I just earned ${displayPoints} XP on FuelSpy Morocco for ${isPioneer ? 'adding' : 'verifying'} ${summary?.fuel || 'fuel'} at ${summary?.station || 'a station'}! Join me and find the cheapest fuel: https://fuelspy.ma`;
+                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+              }}
+              className="w-full h-16 bg-[#25D366] hover:bg-[#128C7E] text-white font-black text-xl rounded-[2rem] shadow-[0_15px_30px_rgba(37,211,102,0.3)] flex items-center justify-center gap-3 transition-all active:scale-95 uppercase tracking-widest"
+            >
+              <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" className="h-6 w-6" />
+              {t('contributionSuccess.shareWhatsApp') || 'Share'}
+            </button>
+          )}
+
           <button
             disabled={isSpinning}
             onClick={onDone}
-            className={`w-full h-16 font-black text-xl rounded-[2rem] transition-all uppercase tracking-widest ${isSpinning
-                ? 'bg-surface-dark text-slate-500 opacity-50 cursor-not-allowed'
-                : 'bg-primary hover:bg-blue-400 text-background-dark shadow-[0_15px_30px_rgba(59,130,246,0.3)] active:scale-95'
+            className={`w-full h-16 font-black text-lg rounded-[2rem] transition-all uppercase tracking-[0.15em] border ${isSpinning
+              ? 'bg-surface-dark text-slate-500 opacity-50 cursor-not-allowed border-transparent'
+              : 'bg-transparent text-white border-white/20 hover:bg-white/5 active:scale-95'
               }`}
           >
             {isSpinning ? t('contributionSuccess.wait') : t('contributionSuccess.returnToMap')}

@@ -10,37 +10,82 @@ interface ManualReportProps {
 
 export const ManualReport: React.FC<ManualReportProps> = ({ station, onBack, onComplete }) => {
   const { t } = useLanguage();
-  const [priceStr, setPriceStr] = useState("0");
+  const [prices, setPrices] = useState<Record<string, string>>({
+    Diesel: station.prices?.Diesel?.toString() || "0",
+    "Sans Plomb": station.prices?.['Sans Plomb']?.toString() || "0",
+    Premium: station.prices?.Premium?.toString() || "0",
+  });
+  const [modifiedFuels, setModifiedFuels] = useState<Set<string>>(new Set());
   const [fuelType, setFuelType] = useState<FuelType>('Diesel');
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [validationError, setValidationError] = useState('');
+
+  const priceStr = prices[fuelType];
+
+  const updatePrice = (newPrice: string) => {
+    setPrices(prev => ({ ...prev, [fuelType]: newPrice }));
+    setModifiedFuels(prev => new Set(prev).add(fuelType));
+    setValidationError('');
+  };
 
   // Sync price when station or fuelType changes initially
   React.useEffect(() => {
-    const currentPrice = station.prices?.[fuelType];
-    if (currentPrice && currentPrice > 0) {
-      setPriceStr(currentPrice.toString());
-    } else {
-      setPriceStr("0");
+    // If not modified, sync with station
+    if (!modifiedFuels.has(fuelType)) {
+      const currentPrice = station.prices?.[fuelType];
+      if (currentPrice && currentPrice > 0) {
+        setPrices(prev => ({ ...prev, [fuelType]: currentPrice.toString() }));
+      } else {
+        setPrices(prev => ({ ...prev, [fuelType]: "0" }));
+      }
     }
   }, [station.id, fuelType]);
 
   const handleKeypadPress = (val: string) => {
     if (val === 'backspace') {
-      setPriceStr(prev => prev.length > 1 ? prev.slice(0, -1) : "0");
+      updatePrice(priceStr.length > 1 ? priceStr.slice(0, -1) : "0");
       return;
     }
     if (val === '.' && priceStr.includes('.')) return;
     if (priceStr === "0" && val !== ".") {
-      setPriceStr(val);
+      updatePrice(val);
     } else {
-      // Limit to sensible length
       if (priceStr.length >= 6) return;
-      setPriceStr(prev => prev + val);
+      updatePrice(priceStr + val);
     }
   };
 
   const adjustPrice = (amount: number) => {
     const current = parseFloat(priceStr) || 0;
-    setPriceStr(Math.max(0, current + amount).toFixed(2));
+    updatePrice(Math.max(0, current + amount).toFixed(2));
+  };
+
+  const handleConfirmClick = () => {
+    if (modifiedFuels.size === 0) {
+      setValidationError(t('app.noChanges') || 'Please enter a new price');
+      return;
+    }
+
+    // Validate bounds
+    for (const type of modifiedFuels) {
+      const p = parseFloat(prices[type]);
+      if (p < 8 || p > 20) {
+        setValidationError(`Price for ${type} must be between 8 and 20 DH.`);
+        setFuelType(type as FuelType);
+        return;
+      }
+    }
+    setShowConfirm(true);
+  };
+
+  const submitAll = () => {
+    const reports: any[] = [];
+    modifiedFuels.forEach(type => {
+      reports.push({ fuelType: type, price: parseFloat(prices[type]) });
+    });
+    // Currently onComplete only takes single (price, type). Passing first one, then others if we updated App.tsx. Let's pass array
+    // @ts-ignore
+    onComplete(reports);
   };
 
   return (
@@ -111,6 +156,9 @@ export const ManualReport: React.FC<ManualReportProps> = ({ station, onBack, onC
               <span className="material-symbols-outlined text-2xl font-black">add</span>
             </button>
           </div>
+          {validationError && (
+            <p className="text-red-400 font-bold text-xs mt-4 animate-fadeIn">{validationError}</p>
+          )}
         </div>
 
         {/* Numeric Keypad */}
@@ -148,13 +196,35 @@ export const ManualReport: React.FC<ManualReportProps> = ({ station, onBack, onC
 
         {/* Submit Button */}
         <button
-          onClick={() => onComplete(parseFloat(priceStr), fuelType)}
+          onClick={handleConfirmClick}
           className="w-full h-14 bg-primary text-background-dark font-black text-lg rounded-3xl shadow-[0_15px_30px_rgba(59,130,246,0.3)] hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-3 mt-1 shrink-0 mb-4 uppercase tracking-widest"
         >
-          <span>{t('manualReport.confirmPrice')}</span>
-          <span className="material-symbols-outlined font-black text-[20px]">check</span>
+          <span>{modifiedFuels.size > 0 ? t('manualReport.confirmPrice') : t('app.noChanges') || 'No modifications'}</span>
+          <span className="material-symbols-outlined font-black text-[20px]">{modifiedFuels.size > 0 ? "check" : "edit"}</span>
         </button>
       </main>
+
+      {/* Confirmation Modal */}
+      {showConfirm && (
+        <div className="absolute inset-0 z-[2000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-background-dark/80 backdrop-blur-sm" onClick={() => setShowConfirm(false)} />
+          <div className="bg-surface-dark border border-white/5 rounded-3xl p-6 w-full max-w-sm relative z-10 shadow-2xl animate-fadeIn">
+            <h3 className="text-xl font-black uppercase tracking-widest mb-4">Confirm Prices</h3>
+            <div className="bg-background-dark/50 rounded-2xl p-4 mb-6 space-y-3">
+              {Array.from(modifiedFuels).map(type => (
+                <div key={type} className="flex justify-between items-center bg-surface-dark/50 p-3 rounded-xl">
+                  <span className="font-bold text-slate-300">{type}</span>
+                  <span className="font-black text-primary text-xl">{prices[type]} <span className="text-xs text-slate-500">DH</span></span>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setShowConfirm(false)} className="flex-1 py-4 rounded-2xl font-black uppercase text-xs tracking-widest border border-white/10 text-slate-300 hover:bg-white/5">Cancel</button>
+              <button onClick={submitAll} className="flex-1 py-4 rounded-2xl font-black uppercase text-xs tracking-widest bg-primary text-background-dark shadow-[0_10px_20px_rgba(59,130,246,0.3)]">Confirm & Send</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* iOS Home Indicator Spacer */}
       <div className="h-4 w-full shrink-0" />

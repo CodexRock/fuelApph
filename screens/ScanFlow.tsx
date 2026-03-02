@@ -12,6 +12,7 @@ export const ScanFlow: React.FC<ScanFlowProps> = ({ onComplete, onCancel, onFall
   const { t } = useLanguage();
   const [step, setStep] = useState<'camera' | 'processing' | 'verify'>('camera');
   const [extractedData, setExtractedData] = useState<{ price: number; fuelType: string } | null>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -26,9 +27,11 @@ export const ScanFlow: React.FC<ScanFlowProps> = ({ onComplete, onCancel, onFall
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        setCameraError(null);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Camera error:", err);
+      setCameraError(err.message || 'Camera permission denied');
     }
   };
 
@@ -80,7 +83,38 @@ export const ScanFlow: React.FC<ScanFlowProps> = ({ onComplete, onCancel, onFall
 
   return (
     <div className="absolute inset-0 z-[100] bg-black flex flex-col">
-      {step === 'camera' && (
+      {cameraError && step === 'camera' && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center p-8 text-center bg-background-dark/95 backdrop-blur-md">
+          <div className="size-20 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-6 border border-red-500/20">
+            <span className="material-symbols-outlined text-4xl">no_photography</span>
+          </div>
+          <h2 className="text-2xl font-black text-white mb-3 tracking-tight">{t('scanFlow.cameraErrorTitle') || 'Camera Blocked'}</h2>
+          <p className="text-slate-400 text-sm mb-8 leading-relaxed max-w-xs">{t('scanFlow.cameraErrorDesc') || 'Please allow camera access in your browser settings to scan prices automatically.'}</p>
+
+          <div className="w-full space-y-3 max-w-xs">
+            <button
+              onClick={startCamera}
+              className="w-full h-14 bg-white/10 text-white font-bold rounded-2xl active:scale-95 transition-all border border-white/10"
+            >
+              {t('scanFlow.tryAgain') || 'Try Again'}
+            </button>
+            <button
+              onClick={onFallback}
+              className="w-full h-14 bg-primary text-background-dark font-black rounded-2xl active:scale-95 transition-all shadow-[0_0_20px_rgba(59,130,246,0.5)]"
+            >
+              {t('scanFlow.manualEntry') || 'Enter Manually'}
+            </button>
+            <button
+              onClick={onCancel}
+              className="w-full py-4 text-slate-500 font-bold hover:text-white transition-colors uppercase tracking-widest text-xs mt-2"
+            >
+              {t('scanFlow.cancel') || 'Cancel'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {step === 'camera' && !cameraError && (
         <div className="relative flex-1">
           <video ref={videoRef} autoPlay playsInline className="h-full w-full object-cover" />
 

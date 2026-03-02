@@ -10,7 +10,7 @@ interface SearchScreenProps {
 export const SearchScreen: React.FC<SearchScreenProps> = ({ onBack, onApplyFilters }) => {
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFuel, setSelectedFuel] = useState<'Diesel' | 'Sans Plomb'>('Diesel');
+  const [selectedFuel, setSelectedFuel] = useState<'Diesel' | 'Sans Plomb' | 'Premium'>('Diesel');
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
 
@@ -19,6 +19,10 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onBack, onApplyFilte
     { id: 'Shell', label: 'Shell', code: 'SH', color: 'bg-yellow-400 text-black' },
     { id: 'TotalEnergies', label: 'Total', code: 'TE', color: 'bg-orange-500' },
     { id: 'Winxo', label: 'Winxo', code: 'WX', color: 'bg-purple-600' },
+    { id: 'ZIZ', label: 'ZIZ', code: 'ZZ', color: 'bg-red-600' },
+    { id: 'Petrom', label: 'Petrom', code: 'PT', color: 'bg-teal-500' },
+    { id: 'STLC', label: 'STLC', code: 'ST', color: 'bg-green-600' },
+    { id: 'Other', label: 'Autre', code: 'XX', color: 'bg-slate-500' },
   ];
 
   const amenities = [
@@ -30,35 +34,43 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onBack, onApplyFilte
   ];
 
   const [popularCities, setPopularCities] = useState([
-    { name: 'Casablanca', stations: 0, img: 'https://images.unsplash.com/photo-1539020140153-e479b8c22e70?auto=format&fit=crop&q=80&w=400&h=300' },
-    { name: 'Rabat', stations: 0, img: 'https://images.unsplash.com/photo-1643209228834-807de86fe345?auto=format&fit=crop&q=80&w=400&h=300' },
-    { name: 'Marrakech', stations: 0, img: 'https://images.unsplash.com/photo-1597825310705-776fd308cbb3?auto=format&fit=crop&q=80&w=800&h=400' },
+    { name: 'Casablanca', stations: 0, img: 'https://images.unsplash.com/photo-1569383746724-6f1b882b8f46?auto=format&fit=crop&q=80&w=400&h=300' },
+    { name: 'Rabat', stations: 0, img: 'https://images.unsplash.com/photo-1570804485046-1d8ef7c3b835?auto=format&fit=crop&q=80&w=400&h=300' },
+    { name: 'Marrakech', stations: 0, img: 'https://images.unsplash.com/photo-1597825310705-776fd308cbb3?auto=format&fit=crop&q=80&w=400&h=300' },
+    { name: 'Fès', stations: 0, img: 'https://images.unsplash.com/photo-1579017308347-e2aba1215db8?auto=format&fit=crop&q=80&w=400&h=300' },
+    { name: 'Tanger', stations: 0, img: 'https://images.unsplash.com/photo-1553522991-71439aa39b90?auto=format&fit=crop&q=80&w=400&h=300' },
+    { name: 'Agadir', stations: 0, img: 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&q=80&w=400&h=300' },
   ]);
 
-  const [recentSearches, setRecentSearches] = useState<{ name: string, meta: string }[]>([]);
+  const [recentSearches, setRecentSearches] = useState<{ name: string, meta: string }[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('fuelspy_recent_searches') || '[]');
+    } catch { return []; }
+  });
+
+  const addRecentSearch = (name: string, meta: string) => {
+    const updated = [{ name, meta }, ...recentSearches.filter(s => s.name !== name)].slice(0, 5);
+    setRecentSearches(updated);
+    localStorage.setItem('fuelspy_recent_searches', JSON.stringify(updated));
+  };
+
+  const clearRecent = () => {
+    setRecentSearches([]);
+    localStorage.removeItem('fuelspy_recent_searches');
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
-      const { data } = await supabase.from('stations').select('name, location, brand');
-      if (data) {
-        const casaCount = data.filter(s => s.location?.city === 'Casablanca').length;
-        const rabatCount = data.filter(s => s.location?.city === 'Rabat').length;
-        const kechCount = data.filter(s => s.location?.city === 'Marrakech').length;
+      const { count: casaCount } = await supabase.from('stations').select('*', { count: 'exact', head: true }).ilike('name', '%casablanca%');
+      const { count: rabatCount } = await supabase.from('stations').select('*', { count: 'exact', head: true }).ilike('name', '%rabat%');
+      const { count: kechCount } = await supabase.from('stations').select('*', { count: 'exact', head: true }).ilike('name', '%marrakech%');
 
-        setPopularCities(prev => prev.map(c => {
-          if (c.name === 'Casablanca') return { ...c, stations: casaCount };
-          if (c.name === 'Rabat') return { ...c, stations: rabatCount };
-          if (c.name === 'Marrakech') return { ...c, stations: kechCount };
-          return c;
-        }));
-
-        if (data.length >= 2) {
-          setRecentSearches(data.slice(0, 3).map(s => ({
-            name: s.name,
-            meta: `${s.location?.city || 'Maroc'} • ${s.brand || 'Station'}`
-          })));
-        }
-      }
+      setPopularCities(prev => prev.map(c => {
+        if (c.name === 'Casablanca') return { ...c, stations: casaCount || 0 };
+        if (c.name === 'Rabat') return { ...c, stations: rabatCount || 0 };
+        if (c.name === 'Marrakech') return { ...c, stations: kechCount || 0 };
+        return c;
+      }));
     };
     fetchStats();
   }, []);
@@ -106,11 +118,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onBack, onApplyFilte
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('search.searchPlaceholder')}
-            className="w-full bg-surface-dark border-none rounded-2xl py-4 pl-12 pr-12 text-sm text-white placeholder-slate-500 focus:ring-2 focus:ring-primary/50"
+            className="w-full bg-surface-dark border-none rounded-2xl py-4 flex-1 pl-12 pr-4 text-sm text-white placeholder-slate-500 focus:ring-2 focus:ring-primary/50"
           />
-          <button className="absolute inset-y-0 right-4 flex items-center text-primary">
-            <span className="material-symbols-outlined text-xl">qr_code_scanner</span>
-          </button>
         </div>
 
         <div className="flex gap-3 overflow-x-auto no-scrollbar mb-8">
@@ -238,14 +247,14 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onBack, onApplyFilte
         <div className="mb-10">
           <h2 className="text-white font-black text-lg mb-4">{t('search.fuelType')}</h2>
           <div className="flex bg-surface-dark p-1.5 rounded-2xl border border-white/5">
-            {(['Diesel', 'Sans Plomb'] as const).map((type) => (
+            {(['Diesel', 'Sans Plomb', 'Premium'] as const).map((type) => (
               <button
                 key={type}
                 onClick={() => setSelectedFuel(type)}
-                className={`flex-1 py-4 rounded-xl text-sm font-black transition-all ${selectedFuel === type ? 'bg-primary text-background-dark shadow-lg' : 'text-slate-500'
+                className={`flex-1 py-4 rounded-xl text-xs font-black transition-all ${selectedFuel === type ? 'bg-primary text-background-dark shadow-lg' : 'text-slate-500'
                   }`}
               >
-                {type === 'Diesel' ? t('station.diesel') : t('station.sansPlomb')}
+                {type === 'Diesel' ? t('station.diesel') : type === 'Sans Plomb' ? t('station.sansPlomb') : 'Premium'}
               </button>
             ))}
           </div>

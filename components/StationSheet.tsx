@@ -78,17 +78,20 @@ export const StationSheet: React.FC<StationSheetProps> = ({
   };
 
   const openWaze = () => window.open(`waze://?ll=${station.location.lat},${station.location.lng}&navigate=yes`, '_blank');
-  const openGoogleMaps = () => window.open(`http://googleusercontent.com/maps.google.com/dir/?api=1&destination=${station.location.lat},${station.location.lng}`, '_blank');
+  const openGoogleMaps = () => window.open(`https://www.google.com/maps/dir/?api=1&destination=${station.location.lat},${station.location.lng}`, '_blank');
 
   const handleOneTap = async () => {
     if (!onValidateDistance()) return;
 
     if (user && station) {
+      // Confirm whichever fuel type has a price, prioritize Diesel then Sans Plomb
+      const fuelToConfirm = station.prices?.Diesel ? 'Diesel' : station.prices?.['Sans Plomb'] ? 'Sans Plomb' : 'Diesel';
+      const priceToConfirm = station.prices?.[fuelToConfirm as keyof typeof station.prices] || 0;
       const result = await confirmPrice(
         station.id,
         user.id,
-        'Diesel',
-        station.prices?.Diesel || 0
+        fuelToConfirm,
+        priceToConfirm
       );
 
       if (!result.success) {
@@ -189,21 +192,64 @@ export const StationSheet: React.FC<StationSheetProps> = ({
               <div className={`flex items-center gap-2 mb-6 px-3 py-2 rounded-xl border ${isStale ? 'bg-slate-800/50 border-slate-600' : isHighlyTrusted ? 'bg-green-500/10 border-green-500/20' : 'bg-primary/10 border-primary/20'}`}>
                 <div className={`size-2 rounded-full ${isStale ? 'bg-slate-500' : isHighlyTrusted ? 'bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-primary animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.5)]'}`}></div>
                 <div className="flex-1 flex justify-between items-center text-xs font-medium">
-                  <span className={isStale ? 'text-slate-400' : 'text-slate-300'}>
+                  <span className={`flex items-center gap-1.5 ${isStale ? 'text-slate-400' : 'text-slate-300'}`}>
                     {isStale ? t('station.needsVerification') : `${t('station.verifiedBy')} ${station.verifiedBy || t('station.community')}`}
+                    {!isStale && station.verifiedByLevel && (
+                      <span className="bg-white/10 text-white text-[9px] px-1.5 py-0.5 rounded-full font-black border border-white/10 uppercase tracking-widest">
+                        LVL {station.verifiedByLevel}
+                      </span>
+                    )}
                   </span>
                   <span className={isStale ? 'text-slate-500 font-bold' : 'text-white font-bold'}>{station.lastUpdated}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 mb-8">
+              {/* Amenities */}
+              {station.amenities && station.amenities.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto no-scrollbar mb-6 pb-2">
+                  {station.amenities.map(amenity => {
+                    let icon = 'local_convenience_store';
+                    let label = amenity;
+                    switch (amenity) {
+                      case 'Cafe': icon = 'local_cafe'; break;
+                      case 'Shop': icon = 'local_mall'; break;
+                      case 'Wash': icon = 'local_car_wash'; break;
+                      case 'WC': icon = 'wc'; break;
+                      case 'Mosque': icon = 'mosque'; break;
+                      case 'Tire': icon = 'tire_repair'; break;
+                    }
+                    return (
+                      <div key={amenity} className="flex flex-col items-center justify-center bg-surface-dark border border-white/5 rounded-xl min-w-[64px] h-16 shrink-0 shadow-lg">
+                        <span className="material-symbols-outlined text-slate-400 mb-1 text-[20px]">{icon}</span>
+                        <span className="text-[9px] font-black uppercase text-slate-300 tracking-widest">{label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-3 mb-8">
                 <button onClick={openWaze} className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors border border-blue-500/20 shadow-lg active:scale-95">
                   <img src="https://cdn.simpleicons.org/waze/60a5fa" alt="Waze" className="h-5 w-5" />
-                  <span className="text-xs font-black uppercase tracking-widest">{t('station.openWaze')}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">{t('station.openWaze')}</span>
                 </button>
                 <button onClick={openGoogleMaps} className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-surface-dark/60 text-slate-300 hover:bg-surface-dark transition-colors border border-white/10 shadow-lg active:scale-95">
                   <span className="material-symbols-outlined text-lg">map</span>
-                  <span className="text-xs font-black uppercase tracking-widest">{t('station.googleMaps')}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">{t('station.googleMaps')}</span>
+                </button>
+                <button onClick={() => {
+                  const dieselPrice = station.prices?.Diesel ? `Diesel: ${station.prices.Diesel} DH` : '';
+                  const spPrice = station.prices?.['Sans Plomb'] ? `SP: ${station.prices['Sans Plomb']} DH` : '';
+                  const prices = [dieselPrice, spPrice].filter(Boolean).join(' | ');
+                  const text = `⛽ ${station.name} — ${prices}\n📍 https://www.google.com/maps?q=${station.location.lat},${station.location.lng}\n\nVia FuelSpy Morocco 🇲🇦`;
+                  if (navigator.share) {
+                    navigator.share({ title: station.name, text });
+                  } else {
+                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                  }
+                }} className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors border border-green-500/20 shadow-lg active:scale-95">
+                  <span className="material-symbols-outlined text-lg">share</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">Share</span>
                 </button>
               </div>
 

@@ -79,6 +79,45 @@
 
 <body class="font-sans antialiased overflow-hidden">
   <div id="root"></div>
+
+  <div id="native-splash"
+    style="position: fixed; inset: 0; z-index: 9999; background-color: #0f172a; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out, visibility 0.5s ease-out;">
+    <div
+      style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(59,130,246,0.15) 0%, transparent 70%);">
+    </div>
+    <div
+      style="width: 100px; height: 100px; background: rgba(59,130,246,0.1); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; box-shadow: 0 0 40px rgba(59,130,246,0.2); position: relative; z-index: 10;">
+      <span class="material-symbols-outlined" style="font-size: 48px; color: #3b82f6;">local_gas_station</span>
+    </div>
+    <h1
+      style="font-family: 'Lexend', sans-serif; font-size: 32px; font-weight: 900; color: #ffffff; letter-spacing: -1px; margin: 0; position: relative; z-index: 10;">
+      FuelSpy</h1>
+    <p
+      style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; color: #3b82f6; letter-spacing: 4px; text-transform: uppercase; margin-top: 8px; position: relative; z-index: 10;">
+      Morocco</p>
+
+    <div
+      style="position: absolute; bottom: 48px; display: flex; flex-direction: column; align-items: center; z-index: 10;">
+      <div
+        style="width: 24px; height: 24px; border: 3px solid rgba(59,130,246,0.2); border-top-color: #3b82f6; border-radius: 50%; animation: splash-spin 1s linear infinite;">
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @keyframes splash-spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    #root:not(:empty)+#native-splash {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+  </style>
+
   <script type="module" src="/index.tsx"></script>
 </body>
 

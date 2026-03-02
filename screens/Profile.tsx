@@ -13,6 +13,7 @@ import { SecuritySettings } from './SecuritySettings';
 import { HelpCenter } from './HelpCenter';
 import { LanguageSettings } from './LanguageSettings';
 import { useLanguage } from '../i18n/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 type ProfileSubView = 'main' | 'leaderboard' | 'referrals' | 'logs' | 'notifications' | 'badges' | 'vehicle' | 'payment' | 'security' | 'help' | 'language';
 
@@ -62,11 +63,11 @@ export const Profile: React.FC<ProfileProps> = ({ onSignOut }) => {
 
   const renderContent = () => {
     switch (subView) {
-      case 'leaderboard': return <Leaderboard onBack={() => setSubView('main')} />;
-      case 'referrals': return <Referrals onBack={() => setSubView('main')} />;
+      case 'leaderboard': return <Leaderboard onBack={() => setSubView('main')} currentUser={profileData} />;
+      case 'referrals': return <Referrals onBack={() => setSubView('main')} user={profileData} />;
       case 'logs': return <VehicleLog onBack={() => setSubView('main')} />;
       case 'notifications': return <Notifications onBack={() => setSubView('main')} />;
-      case 'badges': return <Badges onBack={() => setSubView('main')} />;
+      case 'badges': return <Badges onBack={() => setSubView('main')} currentUser={profileData} />;
       case 'vehicle': return <VehicleSettings onBack={() => setSubView('main')} />;
       case 'payment': return <PaymentMethods onBack={() => setSubView('main')} />;
       case 'security': return <SecuritySettings onBack={() => setSubView('main')} />;
@@ -96,9 +97,9 @@ export const Profile: React.FC<ProfileProps> = ({ onSignOut }) => {
 
               <div className="relative mb-6">
                 <div className="size-32 rounded-full border-4 border-primary/20 p-1.5 relative">
-                  <svg className="absolute inset-0 size-full -rotate-90">
-                    <circle cx="64" cy="64" r="60" fill="none" stroke="currentColor" strokeWidth="4" className="text-white/5" />
-                    <circle cx="64" cy="64" r="60" fill="none" stroke="currentColor" strokeWidth="4" strokeDasharray="376" strokeDashoffset={376 * (1 - 0.78)} className="text-primary transition-all duration-1000" />
+                  <svg className="absolute -inset-1 w-[calc(100%+8px)] h-[calc(100%+8px)] -rotate-90" viewBox="0 0 132 132">
+                    <circle cx="66" cy="66" r="60" fill="none" stroke="currentColor" strokeWidth="4" className="text-white/5" />
+                    <circle cx="66" cy="66" r="60" fill="none" stroke="currentColor" strokeWidth="4" strokeDasharray="376" strokeDashoffset={376 * (1 - ((profileData.xp || 0) / (profileData.nextLevelXp || 100)))} strokeLinecap="round" className="text-primary transition-all duration-1000" />
                   </svg>
                   <img
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuBD7lWc3Zbxpl_SpBz_FS6unVna7LApC1zxm1c8LRcxEkXE8Vd8EEqppAiYS65qSmA6jFUEEfUkVRIGBPaJN8IMa9BKGgQf-9efmHKa2iExtZiDIlQpCcI6kOQcltPLVg-mXBlGKsHa-OblN_PgsvUe_eKsU5bZkdWupbeaqq1_GhWTiSArXz3Wo5sApCd95RtVtv9YnHbqom_ShfZ0GuRidfWboRCORUcz2YC2B_8JX7jasaVX6VuKqF7XvW2a3R4g3_gwZsGYDgxY"
@@ -166,6 +167,7 @@ export const Profile: React.FC<ProfileProps> = ({ onSignOut }) => {
               <ListButton icon="payments" label={t('profile.paymentMethods')} onClick={() => setSubView('payment')} />
               <ListButton icon="security" label={t('profile.accountSecurity')} onClick={() => setSubView('security')} />
               <ListButton icon="language" label={t('profile.language')} onClick={() => setSubView('language')} />
+              <ThemeToggleButton />
               <ListButton icon="help" label={t('profile.helpCenter')} onClick={() => setSubView('help')} />
 
               <button
@@ -215,3 +217,25 @@ const ListButton: React.FC<{ icon: string; label: string; onClick?: () => void }
     <span className="material-symbols-outlined text-slate-600">chevron_right</span>
   </button>
 );
+
+const ThemeToggleButton: React.FC = () => {
+  const { theme, toggleTheme } = useTheme();
+  return (
+    <button
+      onClick={toggleTheme}
+      className="w-full flex items-center justify-between p-5 rounded-2xl bg-surface-dark border border-white/5 active:scale-[0.98] transition-all text-left"
+    >
+      <div className="flex items-center gap-4">
+        <span className="material-symbols-outlined text-slate-400">
+          {theme === 'dark' ? 'dark_mode' : 'light_mode'}
+        </span>
+        <span className="font-bold text-sm text-slate-200">
+          {theme === 'dark' ? 'Mode sombre' : 'Mode clair'}
+        </span>
+      </div>
+      <div className={`w-12 h-7 rounded-full p-1 transition-colors ${theme === 'dark' ? 'bg-primary' : 'bg-slate-300'}`}>
+        <div className={`size-5 rounded-full bg-white shadow transition-transform ${theme === 'dark' ? 'translate-x-5' : 'translate-x-0'}`} />
+      </div>
+    </button>
+  );
+};
