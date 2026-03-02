@@ -32,6 +32,7 @@ export const StationSheet: React.FC<StationSheetProps> = ({
   const [translateY, setTranslateY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const startY = useRef(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   if (!station) return null;
 
@@ -59,12 +60,20 @@ export const StationSheet: React.FC<StationSheetProps> = ({
     if (!isDragging) return;
     const currentY = e.touches[0].clientY;
     const diff = currentY - startY.current;
-    if (diff > 0) setTranslateY(diff);
+
+    // Only pull down if we are at the top of the scrollable content
+    if (diff > 0 && scrollRef.current && scrollRef.current.scrollTop <= 0) {
+      setTranslateY(diff);
+    } else {
+      setTranslateY(0);
+    }
   };
 
   const handleTouchEnd = () => {
     setIsDragging(false);
-    if (translateY > 100) onClose();
+    if (translateY > 100) {
+      onClose();
+    }
     setTranslateY(0);
   };
 
@@ -93,18 +102,24 @@ export const StationSheet: React.FC<StationSheetProps> = ({
   };
 
   return (
-    <div className="absolute inset-0 z-[1100] pointer-events-none flex flex-col justify-end">
+    <div className="absolute inset-0 z-[3000] pointer-events-none flex flex-col justify-end">
       <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] pointer-events-auto transition-opacity animate-fadeIn" onClick={onClose} />
 
       <div
         className="relative bg-surface-darker/98 backdrop-blur-2xl border-t border-white/10 rounded-t-[32px] w-full max-w-md mx-auto pointer-events-auto shadow-[0_-8px_30px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden max-h-[90vh]"
         style={{ transform: `translateY(${translateY}px)`, transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)' }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
-        <div className="w-full flex justify-center pt-4 pb-2 active:bg-white/5 cursor-grab" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+        <div className="w-full flex justify-center pt-4 pb-2 active:bg-white/5 cursor-grab">
           <div className="w-12 h-1.5 bg-white/20 rounded-full"></div>
         </div>
 
-        <div className="flex-1 overflow-y-auto no-scrollbar px-6 pb-8">
+        <div
+          ref={scrollRef}
+          className="flex-1 overflow-y-auto no-scrollbar px-6 pb-8"
+        >
 
           <div className="flex items-start justify-between mt-2 mb-6">
             <div className="flex gap-4">

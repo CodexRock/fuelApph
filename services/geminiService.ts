@@ -15,16 +15,17 @@ export async function extractFuelPriceFromImage(base64Image: string) {
         }
       },
       {
-        text: `You are an expert fuel price analyst in Morocco. 
-        Analyze this image of a gas station price tower or pump display.
-        Extract the price per liter for the fuel types shown.
-        Focus on values typically ranging from 10.00 to 18.00 MAD.
-        Return ONLY a JSON object with:
-        - "price": number (the detected price per liter)
-        - "fuelType": string (one of: "Diesel", "Sans Plomb", "Premium")
+        text: `You are a specialized Moroccan fuel price OCR engine.
+        Analyze this image of a fuel price totem or pump display.
         
-        Example: {"price": 13.45, "fuelType": "Diesel"}
-        If multiple are shown, prioritize the most prominent or standard Diesel.`
+        RULES:
+        1. Extract the price per liter (e.g., 13.45).
+        2. Identify the fuel type: "Diesel", "Sans Plomb", or "Premium".
+        3. If multiple prices are visible, extract the most prominent DIESEL price.
+        4. Return ONLY a JSON object: {"price": number, "fuelType": string}.
+        5. DO NOT GUESS. If no price is clearly visible or legible, return exactly: {"price": null, "fuelType": null}.
+        
+        CONTEXT: Morocco fuel prices currently range between 10.00 and 17.00 MAD.`
       }
     ]);
 

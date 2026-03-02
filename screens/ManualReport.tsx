@@ -10,8 +10,18 @@ interface ManualReportProps {
 
 export const ManualReport: React.FC<ManualReportProps> = ({ station, onBack, onComplete }) => {
   const { t } = useLanguage();
-  const [priceStr, setPriceStr] = useState("13.49");
+  const [priceStr, setPriceStr] = useState("0");
   const [fuelType, setFuelType] = useState<FuelType>('Diesel');
+
+  // Sync price when station or fuelType changes initially
+  React.useEffect(() => {
+    const currentPrice = station.prices?.[fuelType];
+    if (currentPrice && currentPrice > 0) {
+      setPriceStr(currentPrice.toString());
+    } else {
+      setPriceStr("0");
+    }
+  }, [station.id, fuelType]);
 
   const handleKeypadPress = (val: string) => {
     if (val === 'backspace') {
