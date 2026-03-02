@@ -3,7 +3,7 @@ export type FuelType = 'Diesel' | 'Sans Plomb' | 'Premium';
 export interface Station {
   id: string;
   name: string;
-  brand: 'Shell' | 'Afriquia' | 'TotalEnergies' | 'Winxo' | 'Ola Energy' | 'Petrom' | 'Other';
+  brand: 'Shell' | 'Afriquia' | 'TotalEnergies' | 'Winxo' | 'Ola Energy' | 'Petrom' | 'Petromin' | 'Ziz' | 'Somap' | 'E.Leclerc' | 'Other';
   location: {
     lat: number;
     lng: number;

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../i18n/LanguageContext';
+import { isInsideMorocco, getFunnyMoroccoRestrictionMessage } from '../utils/location';
+import { isValidStation } from '../utils/brands';
 
 interface AddStationProps {
   location: { lat: number; lng: number } | null;
@@ -51,15 +53,14 @@ export const AddStation: React.FC<AddStationProps> = ({ location, onBack, onComp
           <div className="flex flex-col flex-1 animate-fadeIn">
             <h2 className="text-2xl font-black text-white mb-2">{t('addStation.selectBrand')}</h2>
             <p className="text-slate-400 text-sm mb-8">{t('addStation.whatStation')}</p>
-            
+
             <div className="grid grid-cols-2 gap-4 mb-auto">
               {brands.map(b => (
                 <button
                   key={b.id}
                   onClick={() => setSelectedBrand(b.id)}
-                  className={`relative h-24 rounded-3xl flex flex-col items-center justify-center border-2 transition-all active:scale-95 ${
-                    selectedBrand === b.id ? 'border-primary ring-4 ring-primary/20 bg-surface-dark' : 'border-white/5 bg-surface-dark/50'
-                  }`}
+                  className={`relative h-24 rounded-3xl flex flex-col items-center justify-center border-2 transition-all active:scale-95 ${selectedBrand === b.id ? 'border-primary ring-4 ring-primary/20 bg-surface-dark' : 'border-white/5 bg-surface-dark/50'
+                    }`}
                 >
                   <div className={`size-10 rounded-xl mb-2 flex items-center justify-center shadow-lg font-black text-xs ${b.color}`}>
                     {b.id.substring(0, 2).toUpperCase()}
@@ -74,12 +75,11 @@ export const AddStation: React.FC<AddStationProps> = ({ location, onBack, onComp
               ))}
             </div>
 
-            <button 
+            <button
               disabled={!selectedBrand}
               onClick={() => setStep(2)}
-              className={`w-full h-16 mt-8 font-black text-lg rounded-2xl transition-all flex items-center justify-center gap-2 ${
-                selectedBrand ? 'bg-primary text-background-dark shadow-[0_10px_30px_rgba(59,130,246,0.3)] hover:scale-[1.02]' : 'bg-surface-dark text-slate-500 cursor-not-allowed'
-              }`}
+              className={`w-full h-16 mt-8 font-black text-lg rounded-2xl transition-all flex items-center justify-center gap-2 ${selectedBrand ? 'bg-primary text-background-dark shadow-[0_10px_30px_rgba(59,130,246,0.3)] hover:scale-[1.02]' : 'bg-surface-dark text-slate-500 cursor-not-allowed'
+                }`}
             >
               {t('addStation.nextStep')} <span className="material-symbols-outlined">arrow_forward</span>
             </button>
@@ -100,7 +100,7 @@ export const AddStation: React.FC<AddStationProps> = ({ location, onBack, onComp
             </div>
 
             <h2 className="text-2xl font-black text-white text-center mb-6">{t('addStation.currentDieselPrice')}</h2>
-            
+
             <div className="flex justify-center mb-8">
               <div className="flex flex-col items-center">
                 <span className="text-[72px] font-black tracking-tighter leading-none text-white tabular-nums">
@@ -115,17 +115,32 @@ export const AddStation: React.FC<AddStationProps> = ({ location, onBack, onComp
                 <button
                   key={key}
                   onClick={() => handleKeypadPress(key)}
-                  className={`h-16 rounded-2xl transition-all flex items-center justify-center active:scale-90 text-2xl font-black ${
-                    key === 'backspace' ? 'bg-surface-dark/50 text-red-500' : 'bg-surface-dark text-white'
-                  }`}
+                  className={`h-16 rounded-2xl transition-all flex items-center justify-center active:scale-90 text-2xl font-black ${key === 'backspace' ? 'bg-surface-dark/50 text-red-500' : 'bg-surface-dark text-white'
+                    }`}
                 >
                   {key === 'backspace' ? <span className="material-symbols-outlined">backspace</span> : key}
                 </button>
               ))}
             </div>
 
-            <button 
-              onClick={() => onComplete(selectedBrand, parseFloat(priceStr))}
+            <button
+              onClick={() => {
+                if (location && isInsideMorocco(location.lat, location.lng)) {
+                  let finalName = selectedBrand;
+                  if (selectedBrand === 'Other') {
+                    const customName = prompt(t('addStation.enterName') || "Entrez le nom de la station (ex: Station CP):");
+                    if (!customName) return;
+                    if (!isValidStation(customName, 'Other')) {
+                      alert(t('addStation.invalidName') || "Nom invalide. Assurez-vous d'inclure 'Station' ou une marque reconnaissable.");
+                      return;
+                    }
+                    finalName = customName;
+                  }
+                  onComplete(finalName, parseFloat(priceStr));
+                } else {
+                  alert(getFunnyMoroccoRestrictionMessage());
+                }
+              }}
               className="w-full h-16 mt-8 bg-accent-gold text-background-dark font-black text-lg rounded-2xl shadow-[0_10px_30px_rgba(251,191,36,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
             >
               <span className="material-symbols-outlined font-black">flag</span>

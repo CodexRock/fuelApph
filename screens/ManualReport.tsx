@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Station } from '../types';
+import { Station, FuelType } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 
 interface ManualReportProps {
@@ -11,7 +11,7 @@ interface ManualReportProps {
 export const ManualReport: React.FC<ManualReportProps> = ({ station, onBack, onComplete }) => {
   const { t } = useLanguage();
   const [priceStr, setPriceStr] = useState("13.49");
-  const [fuelType, setFuelType] = useState('Diesel');
+  const [fuelType, setFuelType] = useState<FuelType>('Diesel');
 
   const handleKeypadPress = (val: string) => {
     if (val === 'backspace') {
@@ -50,20 +50,22 @@ export const ManualReport: React.FC<ManualReportProps> = ({ station, onBack, onC
       <main className="flex-1 w-full max-w-md flex flex-col px-4 pb-4 overflow-y-auto no-scrollbar gap-4">
 
         {/* Fuel Type Selector */}
-        <div className="grid grid-cols-2 gap-3 shrink-0">
-          {['Diesel', 'Sans Plomb'].map((type) => (
+        <div className="grid grid-cols-3 gap-3 shrink-0">
+          {(['Diesel', 'Sans Plomb', 'Premium'] as FuelType[]).map((type) => (
             <button
               key={type}
               onClick={() => setFuelType(type)}
               className={`h-12 flex items-center justify-center rounded-2xl border-2 transition-all duration-200 relative overflow-hidden ${fuelType === type
-                  ? 'bg-primary border-primary text-background-dark shadow-lg shadow-primary/20'
-                  : 'bg-surface-dark border-transparent text-slate-400'
+                ? 'bg-primary border-primary text-background-dark shadow-lg shadow-primary/20'
+                : 'bg-surface-dark border-transparent text-slate-400'
                 }`}
             >
-              <span className="text-sm font-black uppercase tracking-tight">{type === 'Diesel' ? t('station.diesel') : t('station.sansPlomb')}</span>
+              <span className="text-xs font-black uppercase tracking-tight">
+                {type === 'Diesel' ? t('station.diesel') : type === 'Sans Plomb' ? t('station.sansPlomb') : t('station.premium') || 'Premium'}
+              </span>
               {fuelType === type && (
-                <div className="absolute top-2 right-2 text-background-dark">
-                  <span className="material-symbols-outlined text-sm font-black">check_circle</span>
+                <div className="absolute top-1 right-1 text-background-dark">
+                  <span className="material-symbols-outlined text-[10px] font-black">check_circle</span>
                 </div>
               )}
             </button>
@@ -108,8 +110,8 @@ export const ManualReport: React.FC<ManualReportProps> = ({ station, onBack, onC
               key={key}
               onClick={() => handleKeypadPress(key)}
               className={`h-12 rounded-2xl transition-all flex items-center justify-center active:scale-90 text-xl font-black ${key === 'backspace'
-                  ? 'bg-surface-dark/50 text-red-500'
-                  : 'bg-surface-dark text-white'
+                ? 'bg-surface-dark/50 text-red-500'
+                : 'bg-surface-dark text-white'
                 }`}
             >
               {key === 'backspace' ? <span className="material-symbols-outlined">backspace</span> : key}

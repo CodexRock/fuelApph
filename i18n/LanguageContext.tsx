@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 
-export type Language = 'en' | 'fr';
+export type Language = 'fr' | 'en';
 
 interface Translations {
   [key: string]: any;
@@ -359,7 +359,15 @@ const en: Translations = {
     processing: 'Processing...',
     noAccount: "Don't have an account? Sign Up",
     hasAccount: "Already have an account? Sign In",
-    failed: 'Authentication failed'
+    failed: 'Authentication failed',
+    forgotPassword: 'Forgot Password?',
+    resetPassword: 'Reset Password',
+    sendResetLink: 'Send Reset Link',
+    backToLogin: 'Back to Login',
+    newPassword: 'New Password',
+    updatePassword: 'Update Password',
+    resetSuccess: 'Password updated successfully! You can now sign in.',
+    checkEmail: 'Check your email for the reset link.'
   }
 };
 
@@ -716,11 +724,19 @@ const fr: Translations = {
     processing: 'Traitement...',
     noAccount: "Vous n'avez pas de compte ? S'inscrire",
     hasAccount: "Vous avez déjà un compte ? Se connecter",
-    failed: 'L\'authentification a échoué'
+    failed: 'L\'authentification a échoué',
+    forgotPassword: 'Mot de passe oublié ?',
+    resetPassword: 'Réinitialiser le mot de passe',
+    sendResetLink: 'Envoyer le lien de réinitialisation',
+    backToLogin: 'Retour à la connexion',
+    newPassword: 'Nouveau mot de passe',
+    updatePassword: 'Mettre à jour le mot de passe',
+    resetSuccess: 'Mot de passe mis à jour avec succès ! Vous pouvez maintenant vous connecter.',
+    checkEmail: 'Consultez vos e-mails pour le lien de réinitialisation.'
   }
 };
 
-const translations = { en, fr };
+const translations = { fr, en };
 
 interface LanguageContextType {
   language: Language;
@@ -731,7 +747,7 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>('fr');
 
   const t = (path: string) => {
     const keys = path.split('.');

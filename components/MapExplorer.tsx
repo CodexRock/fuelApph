@@ -4,9 +4,13 @@ import L from 'leaflet';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { FuelType, Station } from '../types';
 import { fetchStationsInBounds } from '../services/placesService';
+import { getShortBrand, getTimeAgo, isValidStation } from '../utils/brands';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../i18n/LanguageContext';
 import { calculateDistance } from '../utils/distance';
+import { MoroccoRestrictionModal } from './MoroccoRestrictionModal';
+import { isInsideMorocco } from '../utils/location';
+import { syncNewStations } from '../services/stationSyncService';
 
 interface MapExplorerProps {
   onStationSelect: (station: Station) => void;
@@ -69,6 +73,9 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
   const [activeFuel, setActiveFuel] = useState<FuelType>('Diesel');
   const [isBottomCardExpanded, setIsBottomCardExpanded] = useState(false);
   const [isDroppingPin, setIsDroppingPin] = useState(false);
+  const [dropPinPosition, setDropPinPosition] = useState<L.LatLng | null>(null);
+  const [addingStationLocation, setAddingStationLocation] = useState<{ lat: number, lng: number } | null>(null);
+  const [showMoroccoAlert, setShowMoroccoAlert] = useState(false);
 
   const [mapBounds, setMapBounds] = useState<L.LatLngBounds | null>(null);
   const [mapCenter, setMapCenter] = useState<L.LatLng>(new L.LatLng(33.5890, -7.6310));
@@ -158,7 +165,10 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
   const handleBoundsChange = useCallback((bounds: L.LatLngBounds, center: L.LatLng) => {
     setMapBounds(bounds);
     setMapCenter(center);
-  }, []);
+    if (isDroppingPin) {
+      setDropPinPosition(center);
+    }
+  }, [isDroppingPin]);
 
   const fetchPredictions = useCallback(
     L.Util.throttle(async (input: string) => {
@@ -328,8 +338,12 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
         const importedStations = await fetchStationsInBounds(boundsData);
         const dbIds = new Set((supabaseStations || []).map((s: any) => s.id));
         const newStations = importedStations.filter(s => !dbIds.has(s.id));
-
         setDynamicStations(newStations);
+
+        // Sync new stations to the database
+        if (newStations.length > 0) {
+          syncNewStations(importedStations, supabaseStations || []);
+        }
       } catch (err) {
         console.error('Error loading area stations:', err);
       } finally {
@@ -365,9 +379,18 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
   };
 
-  const confirmPinDrop = () => {
+  const onConfirmPin = () => {
+    if (!dropPinPosition) return;
+
+    if (!isInsideMorocco(dropPinPosition.lat, dropPinPosition.lng)) {
+      setShowMoroccoAlert(true);
+      setIsDroppingPin(false);
+      return;
+    }
+
+    setAddingStationLocation(dropPinPosition);
     setIsDroppingPin(false);
-    onAddStationInitiated({ lat: mapCenter.lat, lng: mapCenter.lng });
+    setDropPinPosition(null);
   };
 
   const handleCardTouchStart = (e: React.TouchEvent) => setTouchStart(e.touches[0].clientY);
@@ -380,31 +403,32 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
   const createCustomIcon = useCallback((station: Station) => {
     const brandColors: Record<string, string> = {
       'Afriquia': '#1A6B3C', 'Shell': '#FBDB0C', 'TotalEnergies': '#ED1C24',
-      'Petrom': '#1A5276', 'Ola Energy': '#003399', 'Winxo': '#913bb1'
+      'Petrom': '#1A5276', 'Ola Energy': '#003399', 'Winxo': '#913bb1',
+      'Ziz': '#D42127', 'Somap': '#0058A8', 'Petromin': '#006837', 'E.Leclerc': '#0066B3'
     };
 
     if (station.isGhost) {
       const bgColor = brandColors[station.brand] || '#475569';
       const textColor = station.brand === 'Shell' ? '#000' : '#fff';
-      const displayName = station.brand === 'Other' ? 'Station' : station.brand;
+      const shortBrandName = getShortBrand(station.brand);
 
       const iconHTML = renderToStaticMarkup(
         <div className="relative flex flex-col items-center group hover:z-[100] transition-all">
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-[10px] shadow-lg border border-white/5 bg-surface-dark/95 backdrop-blur-md z-10 whitespace-nowrap">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl shadow-2xl border border-white/10 bg-surface-darker/90 backdrop-blur-md z-10 whitespace-nowrap">
             <div
-              className="w-3.5 h-3.5 rounded flex items-center justify-center text-[7px] font-black shadow-sm"
+              className="size-4 rounded flex items-center justify-center text-[9px] font-black shadow-sm shrink-0"
               style={{ backgroundColor: bgColor, color: textColor }}
             >
               {station.brand.charAt(0)}
             </div>
-            <span className="text-[10px] font-bold text-slate-300 truncate max-w-[60px]">{displayName}</span>
-            <div className="w-px h-2.5 bg-white/10 mx-0.5"></div>
-            <span className="material-symbols-outlined text-[13px] text-slate-400">add_circle</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">{shortBrandName}</span>
+            <div className="w-px h-3 bg-white/10 mx-1" />
+            <span className="material-symbols-outlined text-[15px] text-primary/80">add_circle</span>
           </div>
-          <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[5px] border-t-surface-dark/95 -mt-[1px]" />
+          <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[5px] border-t-surface-darker/90 -mt-[1px]" />
         </div>
       );
-      return L.divIcon({ html: iconHTML, className: 'custom-modern-pin', iconSize: [100, 30], iconAnchor: [50, 30] });
+      return L.divIcon({ html: iconHTML, className: 'custom-modern-pin', iconSize: [120, 35], iconAnchor: [60, 35] });
     }
 
     const price = station.prices[activeFuel];
@@ -413,20 +437,55 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
     const allPrices = displayedStations.filter(s => !s.isGhost).map(s => s.prices[activeFuel]).filter(Boolean) as number[];
     const isCheapest = price === Math.min(...allPrices);
 
+    const shortBrand = getShortBrand(station.brand);
+    const timeAgo = getTimeAgo(station.lastUpdatedTimestamp);
+
     const iconHTML = renderToStaticMarkup(
-      <div className="relative flex flex-col items-center">
-        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl shadow-2xl border transition-all duration-300 ${isCheapest ? 'bg-primary border-white text-background-dark scale-110 z-50 ring-4 ring-primary/20' : 'bg-surface-dark border-white/10 text-white z-10'}`}>
-          <div className="w-4 h-4 rounded-lg flex items-center justify-center text-[7px] font-black shadow-sm" style={{ backgroundColor: brandColors[station.brand] || '#64748b', color: station.brand === 'Shell' ? '#000' : '#fff' }}>
-            {station.brand.charAt(0)}
+      <div className="relative flex flex-col items-center group">
+        <div className={`flex items-stretch min-w-[85px] rounded-xl shadow-2xl border transition-all duration-500 overflow-hidden ${isCheapest ? 'bg-primary border-white scale-110 z-50 ring-4 ring-primary/30' : 'bg-surface-darker/95 border-white/10 text-white z-10'}`}>
+          {/* Brand Accent Bar */}
+          <div
+            className="w-1.5 shrink-0"
+            style={{ backgroundColor: brandColors[station.brand] || '#475569' }}
+          />
+
+          <div className="flex-1 flex flex-col justify-center px-2.5 py-1.5">
+            <div className="flex items-center justify-between gap-2 mb-0.5">
+              <span className={`text-[8px] font-black uppercase tracking-[0.1em] truncate ${isCheapest ? 'text-background-dark/80' : 'text-slate-400'}`}>
+                {shortBrand}
+              </span>
+              {timeAgo === 'NEW' && (
+                <div className="bg-accent-gold px-1 rounded-[3px] shadow-sm animate-pulse">
+                  <span className="text-background-dark text-[7px] font-black italic">NEW</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-baseline gap-1.5 leading-none">
+              <span className={`text-[16px] font-black tracking-tighter tabular-nums ${isCheapest ? 'text-background-dark' : 'text-white'}`}>
+                {price.toFixed(2)}
+              </span>
+              {timeAgo !== 'NEW' && (
+                <span className={`text-[7px] font-black opacity-60 uppercase ${isCheapest ? 'text-background-dark' : 'text-slate-500'}`}>
+                  {timeAgo}
+                </span>
+              )}
+            </div>
           </div>
-          <span className="text-[13px] font-black tracking-tighter">{price.toFixed(2)}</span>
         </div>
-        <div className={`w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] -mt-[1px] ${isCheapest ? 'border-t-primary' : 'border-t-surface-dark'}`} />
+        <div className={`w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] -mt-[1px] ${isCheapest ? 'border-t-white' : 'border-t-surface-darker/95'}`} />
       </div>
     );
 
-    return L.divIcon({ html: iconHTML, className: 'custom-modern-pin', iconSize: [70, 40], iconAnchor: [35, 40] });
+    return L.divIcon({ html: iconHTML, className: 'price-pin-modern', iconSize: [90, 45], iconAnchor: [45, 45] });
   }, [activeFuel, displayedStations]);
+
+  useEffect(() => {
+    if (addingStationLocation) {
+      onAddStationInitiated(addingStationLocation);
+      setAddingStationLocation(null); // Reset after initiating
+    }
+  }, [addingStationLocation, onAddStationInitiated]);
 
   return (
     <div className="relative h-full w-full bg-background-dark select-none overflow-hidden">
@@ -530,7 +589,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
           <button className="size-12 bg-surface-darker/90 backdrop-blur-xl rounded-[1.25rem] shadow-2xl flex items-center justify-center text-primary border border-white/5 active:scale-90 transition-all">
             <span className="material-symbols-outlined text-[26px]">my_location</span>
           </button>
-          <button onClick={() => setIsDroppingPin(true)} className="size-12 bg-accent-gold/90 backdrop-blur-xl rounded-[1.25rem] shadow-[0_10px_30px_rgba(251,191,36,0.3)] flex items-center justify-center text-background-dark border border-accent-gold active:scale-90 transition-all">
+          <button onClick={() => { setIsDroppingPin(true); setDropPinPosition(mapCenter); }} className="size-12 bg-accent-gold/90 backdrop-blur-xl rounded-[1.25rem] shadow-[0_10px_30px_rgba(251,191,36,0.3)] flex items-center justify-center text-background-dark border border-accent-gold active:scale-90 transition-all">
             <span className="material-symbols-outlined text-[26px]">add_location_alt</span>
           </button>
         </div>
@@ -606,7 +665,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
               <button onClick={() => setIsDroppingPin(false)} className="size-16 bg-surface-dark text-white rounded-[2rem] shadow-xl border border-white/10 flex items-center justify-center active:scale-95 transition-all">
                 <span className="material-symbols-outlined">close</span>
               </button>
-              <button onClick={confirmPinDrop} className="flex-1 h-16 bg-accent-gold text-background-dark font-black text-lg rounded-[2rem] shadow-[0_15px_30px_rgba(251,191,36,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-widest">
+              <button onClick={onConfirmPin} className="flex-1 h-16 bg-accent-gold text-background-dark font-black text-lg rounded-[2rem] shadow-[0_15px_30px_rgba(251,191,36,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-widest">
                 {t('map.confirmLocation') || 'Confirm Location'}
               </button>
             </div>
@@ -709,6 +768,10 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
             </div>
           </div>
         </div>
+      )}
+      {/* Morocco Restriction Modal */}
+      {showMoroccoAlert && (
+        <MoroccoRestrictionModal onClose={() => setShowMoroccoAlert(false)} />
       )}
     </div>
   );

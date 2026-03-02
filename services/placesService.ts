@@ -1,4 +1,6 @@
 import { Station } from '../types';
+import { getBrandFromName, isValidStation } from '../utils/brands';
+import { isInsideMorocco } from '../utils/location';
 
 const BBOX_CACHE: Record<string, Station[]> = {};
 
@@ -57,14 +59,11 @@ export async function fetchStationsInBounds(bounds: {
       const tags = node.tags || {};
       const rawName = tags.name || tags.operator || tags.brand || 'Unknown Station';
 
-      let brand: Station['brand'] = 'Other';
-      const searchName = rawName.toLowerCase();
-      if (searchName.includes('shell')) brand = 'Shell';
-      else if (searchName.includes('afriquia')) brand = 'Afriquia';
-      else if (searchName.includes('total')) brand = 'TotalEnergies';
-      else if (searchName.includes('winxo')) brand = 'Winxo';
-      else if (searchName.includes('ola') || searchName.includes('oilybia')) brand = 'Ola Energy';
-      else if (searchName.includes('petrom')) brand = 'Petrom';
+      const brand = getBrandFromName(rawName);
+
+      // Skip stations outside Morocco or with invalid name
+      if (!isInsideMorocco(node.lat, node.lon)) return null;
+      if (!isValidStation(rawName, brand)) return null;
 
       return {
         id: `osm-${node.id}`,
@@ -85,7 +84,7 @@ export async function fetchStationsInBounds(bounds: {
         trustScore: 0,
         isGhost: true
       };
-    });
+    }).filter(Boolean) as Station[];
 
     BBOX_CACHE[cacheKey] = ghostStations;
     return ghostStations;

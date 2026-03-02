@@ -20,6 +20,7 @@ import { useLanguage } from './i18n/LanguageContext';
 import { supabase } from './lib/supabase';
 import { submitPriceReport, addNewStation } from './services/stationService';
 import { calculateDistance } from './utils/distance';
+import { isValidStation } from './utils/brands';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('map');
@@ -49,11 +50,11 @@ const App: React.FC = () => {
   const [hasSeenLocationReminder, setHasSeenLocationReminder] = useState(false);
 
   const { t } = useLanguage();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isRecovering } = useAuth();
 
   // Fetch user profile data for service calls
   useEffect(() => {
-    if (user) {
+    if (user && !isRecovering) {
       supabase.from('users').select('name, level, role').eq('id', user.id).single().then(({ data }) => {
         if (data) {
           setUserName(data.name || '');
@@ -62,7 +63,7 @@ const App: React.FC = () => {
         }
       });
     }
-  }, [user]);
+  }, [user, isRecovering]);
 
   // Track geolocation
   useEffect(() => {
@@ -145,6 +146,13 @@ const App: React.FC = () => {
         setEarnedPoints(result.pointsEarned);
       }
     } else if (user && pioneer && pendingLocation) {
+      const brandType = stationName.replace(' Station', '') as Station['brand'];
+
+      if (!isValidStation(stationName, brandType)) {
+        console.error('Invalid station name/brand combo prevented:', stationName, brandType);
+        return;
+      }
+
       // Add brand new station to Supabase
       const result = await addNewStation({
         userId: user.id,
@@ -186,7 +194,7 @@ const App: React.FC = () => {
     );
   }
 
-  if (!user) {
+  if (!user || isRecovering) {
     return <AuthScreen />;
   }
 
@@ -271,7 +279,10 @@ const App: React.FC = () => {
             <AddStation
               location={pendingLocation}
               onBack={() => setViewMode('map')}
-              onComplete={(brand, price) => finishContribution(`${brand} Station`, 'Diesel', price, true, undefined)}
+              onComplete={(brand, price) => {
+                const name = brand === 'Other' ? 'Unknown Station' : `${brand} Station`;
+                finishContribution(name, 'Diesel', price, true, undefined);
+              }}
             />
           )}
 

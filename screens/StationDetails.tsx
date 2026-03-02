@@ -3,6 +3,7 @@ import { Station } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { confirmPrice } from '../services/stationService';
+import { isInsideMorocco, getFunnyMoroccoRestrictionMessage } from '../utils/location';
 
 interface StationDetailsProps {
   station: Station;
@@ -23,6 +24,10 @@ export const StationDetails: React.FC<StationDetailsProps> = ({ station, onBack,
   };
 
   const handleOneTap = async () => {
+    if (!isInsideMorocco(station.location.lat, station.location.lng)) {
+      alert(getFunnyMoroccoRestrictionMessage());
+      return;
+    }
     setOneTapSuccess(true);
     if (user && station) {
       await confirmPrice(
@@ -149,7 +154,13 @@ export const StationDetails: React.FC<StationDetailsProps> = ({ station, onBack,
                     </div>
                   </div>
 
-                  <button onClick={onReport} className="w-full group relative flex items-center justify-between bg-primary hover:bg-blue-400 transition-all duration-300 rounded-2xl p-5 text-background-dark overflow-hidden shadow-lg">
+                  <button onClick={() => {
+                    if (isInsideMorocco(station.location.lat, station.location.lng)) {
+                      onReport();
+                    } else {
+                      alert(getFunnyMoroccoRestrictionMessage());
+                    }
+                  }} className="w-full group relative flex items-center justify-between bg-primary hover:bg-blue-400 transition-all duration-300 rounded-2xl p-5 text-background-dark overflow-hidden shadow-lg">
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                     <div className="flex items-center gap-4 z-10 text-left">
                       <div className="bg-background-dark/10 p-2.5 rounded-xl">
@@ -164,11 +175,23 @@ export const StationDetails: React.FC<StationDetailsProps> = ({ station, onBack,
                   </button>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <button onClick={onVoiceReport} className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/5 text-white transition-all rounded-2xl p-4 active:scale-95">
+                    <button onClick={() => {
+                      if (isInsideMorocco(station.location.lat, station.location.lng)) {
+                        onVoiceReport();
+                      } else {
+                        alert(getFunnyMoroccoRestrictionMessage());
+                      }
+                    }} className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/5 text-white transition-all rounded-2xl p-4 active:scale-95">
                       <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>mic</span>
                       <span className="font-black text-xs uppercase tracking-widest">{t('station.voice')}</span>
                     </button>
-                    <button onClick={onManualReport} className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/5 text-white transition-all rounded-2xl p-4 active:scale-95">
+                    <button onClick={() => {
+                      if (isInsideMorocco(station.location.lat, station.location.lng)) {
+                        onManualReport();
+                      } else {
+                        alert(getFunnyMoroccoRestrictionMessage());
+                      }
+                    }} className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/5 text-white transition-all rounded-2xl p-4 active:scale-95">
                       <span className="material-symbols-outlined text-slate-400">edit</span>
                       <span className="font-black text-xs uppercase tracking-widest">{t('station.manual')}</span>
                     </button>
