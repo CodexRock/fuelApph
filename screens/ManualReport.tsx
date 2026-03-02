@@ -42,6 +42,15 @@ export const ManualReport: React.FC<ManualReportProps> = ({ station, onBack, onC
   }, [station.id, fuelType]);
 
   const handleKeypadPress = (val: string) => {
+    // On first keypress for an unmodified fuel type, auto-clear the old price
+    if (!modifiedFuels.has(fuelType) && val !== 'backspace') {
+      if (val === '.') {
+        updatePrice('0.');
+      } else {
+        updatePrice(val);
+      }
+      return;
+    }
     if (val === 'backspace') {
       updatePrice(priceStr.length > 1 ? priceStr.slice(0, -1) : "0");
       return;

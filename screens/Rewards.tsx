@@ -94,9 +94,18 @@ export const Rewards: React.FC<RewardsProps> = ({ showAlert }) => {
         p_code: vCode
       });
 
-      if (rpcError || !data?.success) {
-        console.error('Redeem RPC Error:', rpcError || data?.error);
-        showAlert(t('app.error'), data?.error || t('app.error'), 'error');
+      if (rpcError) {
+        console.error('Redeem RPC Error:', rpcError);
+        const friendlyMsg = rpcError.message?.includes('function')
+          ? (t('rewards.featureActivating') || 'This feature is being activated. Please try again later.')
+          : (rpcError.message || t('app.error') || 'An error occurred.');
+        showAlert(t('app.error') || 'Error', friendlyMsg, 'error');
+        setLoading(false);
+        return;
+      }
+
+      if (!data?.success) {
+        showAlert(t('app.error') || 'Error', data?.error || (t('rewards.redeemFailed') || 'Redemption failed. Please try again.'), 'error');
         setLoading(false);
         return;
       }
@@ -114,11 +123,11 @@ export const Rewards: React.FC<RewardsProps> = ({ showAlert }) => {
         status: newVoucher.status || 'active'
       }, ...vouchers]);
 
-      showAlert(t('app.success'), t('rewards.redeemSuccess'), 'success');
+      showAlert(t('app.success') || 'Success!', t('rewards.redeemSuccess') || 'Gift redeemed successfully!', 'success');
       setActiveView('wallet');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Redeem failed:', err);
-      showAlert(t('app.error'), t('app.error'), 'error');
+      showAlert(t('app.error') || 'Error', err?.message || (t('rewards.redeemFailed') || 'Redemption failed. Please try again.'), 'error');
     } finally {
       setLoading(false);
     }

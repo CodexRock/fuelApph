@@ -22,7 +22,12 @@ const en: Translations = {
     locationTitle: 'Find Nearby Stations',
     locationSubtitle: 'FuelSpy needs your location to show you the cheapest gas stations around you and enable 1-tap price verification.',
     allowLocation: 'Allow Location Access',
-    skip: 'Skip for now'
+    skip: 'Skip for now',
+    vehicleTitle: 'Your Vehicle',
+    vehicleSubtitle: 'Tell us about your car so we can personalize your fuel recommendations.',
+    notifTitle: 'Stay Informed',
+    notifSubtitle: 'Get alerts when fuel prices drop near you and earn bonus points.',
+    allowNotif: 'Allow Notifications'
   },
   app: {
     snapSave: 'Snap & Save',
@@ -60,7 +65,16 @@ const en: Translations = {
     helpCenter: 'Help Center',
     language: 'Language',
     languageDesc: 'English / Français',
-    signOut: 'Sign Out'
+    signOut: 'Sign Out',
+    toNextLevel: 'to next level',
+    locationPrivacy: 'Location & Privacy',
+    locationAccess: 'Location Access',
+    locationDesc: 'Allow FuelSpy to find nearby stations',
+    regrantLocation: 'Re-grant Location',
+    locationGranted: 'Location access granted',
+    locationDenied: 'Location access denied',
+    vehicleModel: 'Vehicle Model',
+    fuelType: 'Fuel Type'
   },
   languageSettings: {
     title: 'Language / Langue',
@@ -106,7 +120,10 @@ const en: Translations = {
     earn50: 'Earn +50 pts',
     availableServices: 'Available Services',
     ratingStation: 'Rating Station...',
-    close: 'Close'
+    close: 'Close',
+    addAmenities: '+ Add',
+    amenitiesSaved: 'Amenities updated! +5 PTS',
+    noAmenities: 'No services reported yet — tap to add'
   },
   nearby: {
     nearbyStations: 'Nearby Stations',
@@ -232,6 +249,8 @@ const en: Translations = {
     confirmRedeemDesc: 'Are you sure you want to redeem your points for this voucher?',
     notEnoughPoints: 'Not enough points for this voucher.',
     redeemSuccess: 'Voucher redeemed successfully!',
+    redeemFailed: 'Redemption failed. Please try again.',
+    featureActivating: 'This feature is being activated. Please try again later.',
     pts: 'PTS',
     mad: 'MAD',
     cats: { all: 'All', fuel: 'Fuel', wash: 'Car Wash', food: 'Food' },
@@ -328,7 +347,8 @@ const en: Translations = {
     modelName: 'Model Name',
     odometer: 'Odometer',
     primaryFuel: 'Primary Fuel',
-    saveChanges: 'Save Changes'
+    saveChanges: 'Save Changes',
+    enterModel: 'e.g. Dacia Logan'
   },
   paymentMethods: {
     title: 'Payments',
@@ -336,7 +356,14 @@ const en: Translations = {
     expires: 'Expires',
     primary: 'Primary',
     addNew: 'Add New Payment Method',
-    digitalWallets: 'Digital Wallets'
+    digitalWallets: 'Digital Wallets',
+    comingSoon: 'Coming Soon',
+    comingSoonDesc: 'We\'re working on integrating payment methods so you can pay for fuel directly through FuelSpy. Stay tuned!',
+    cardPayment: 'Card Payment',
+    cardPaymentDesc: 'Visa, Mastercard, CMI',
+    mobilePay: 'Mobile Payment',
+    mobilePayDesc: 'M-Wallet, Inwi Money',
+    soon: 'Soon'
   },
   securitySettings: {
     title: 'Security',
@@ -347,7 +374,9 @@ const en: Translations = {
     highlyRec: 'Highly Recommended',
     biometrics: 'Biometrics',
     faceId: 'FaceID / Fingerprint',
-    fastLogin: 'Fast login and reporting'
+    fastLogin: 'Fast login and reporting',
+    locationPermission: 'Location Permission',
+    locationPermissionDesc: 'Re-grant or update location access'
   },
   auth: {
     welcome: 'Welcome back',
@@ -401,7 +430,12 @@ const fr: Translations = {
     locationTitle: 'Trouver des stations',
     locationSubtitle: 'FuelSpy a besoin de votre position pour vous montrer les stations les moins chères et permettre la vérification des prix en un clic.',
     allowLocation: 'Autoriser la position',
-    skip: 'Ignorer pour le moment'
+    skip: 'Ignorer pour le moment',
+    vehicleTitle: 'Votre Véhicule',
+    vehicleSubtitle: 'Parlez-nous de votre véhicule pour personnaliser vos recommandations.',
+    notifTitle: 'Restez Informé',
+    notifSubtitle: 'Recevez des alertes quand les prix du carburant baissent près de vous.',
+    allowNotif: 'Autoriser les Notifications'
   },
   app: {
     snapSave: 'Scanner & Économiser',
@@ -439,7 +473,16 @@ const fr: Translations = {
     helpCenter: 'Centre d\'aide',
     language: 'Langue',
     languageDesc: 'English / Français',
-    signOut: 'Se déconnecter'
+    signOut: 'Se déconnecter',
+    toNextLevel: 'pour le niveau suivant',
+    locationPrivacy: 'Position et Confidentialité',
+    locationAccess: 'Accès à la Position',
+    locationDesc: 'Permettre à FuelSpy de trouver les stations proches',
+    regrantLocation: 'Réautoriser la position',
+    locationGranted: 'Position autorisée',
+    locationDenied: 'Position refusée',
+    vehicleModel: 'Modèle du Véhicule',
+    fuelType: 'Type de Carburant'
   },
   languageSettings: {
     title: 'Langue / Language',
@@ -485,7 +528,10 @@ const fr: Translations = {
     earn50: 'Gagnez +50 pts',
     availableServices: 'Services disponibles',
     ratingStation: 'Évaluation en cours...',
-    close: 'Fermer'
+    close: 'Fermer',
+    addAmenities: '+ Ajouter',
+    amenitiesSaved: 'Services mis à jour ! +5 PTS',
+    noAmenities: 'Aucun service signalé — appuyez pour ajouter'
   },
   nearby: {
     nearbyStations: 'Stations à proximité',
@@ -611,6 +657,8 @@ const fr: Translations = {
     confirmRedeemDesc: 'Êtes-vous sûr de vouloir échanger vos points contre ce bon ?',
     notEnoughPoints: 'Pas assez de points pour ce bon.',
     redeemSuccess: 'Bon échangé avec succès !',
+    redeemFailed: 'L\'échange a échoué. Veuillez réessayer.',
+    featureActivating: 'Cette fonctionnalité est en cours d\'activation. Veuillez réessayer plus tard.',
     pts: 'PTS',
     mad: 'MAD',
     cats: { all: 'Tout', fuel: 'Carburant', wash: 'Lavage', food: 'Nourriture' },
@@ -707,7 +755,8 @@ const fr: Translations = {
     modelName: 'Nom du Modèle',
     odometer: 'Kilométrage',
     primaryFuel: 'Carburant Principal',
-    saveChanges: 'Enregistrer'
+    saveChanges: 'Enregistrer',
+    enterModel: 'ex: Dacia Logan'
   },
   paymentMethods: {
     title: 'Paiements',
@@ -715,7 +764,14 @@ const fr: Translations = {
     expires: 'Expire',
     primary: 'Principale',
     addNew: 'Ajouter un Moyen de Paiement',
-    digitalWallets: 'Portefeuilles Numériques'
+    digitalWallets: 'Portefeuilles Numériques',
+    comingSoon: 'Bientôt Disponible',
+    comingSoonDesc: 'Nous travaillons sur l\'intégration des moyens de paiement pour que vous puissiez payer votre carburant directement via FuelSpy.',
+    cardPayment: 'Paiement par Carte',
+    cardPaymentDesc: 'Visa, Mastercard, CMI',
+    mobilePay: 'Paiement Mobile',
+    mobilePayDesc: 'M-Wallet, Inwi Money',
+    soon: 'Bientôt'
   },
   securitySettings: {
     title: 'Sécurité',
@@ -726,7 +782,9 @@ const fr: Translations = {
     highlyRec: 'Hautement Recommandé',
     biometrics: 'Biométrie',
     faceId: 'FaceID / Empreinte',
-    fastLogin: 'Connexion et signalement rapides'
+    fastLogin: 'Connexion et signalement rapides',
+    locationPermission: 'Permission de Position',
+    locationPermissionDesc: 'Réautoriser ou mettre à jour l\'accès à la position'
   },
   auth: {
     welcome: 'Bon retour',
@@ -780,7 +838,12 @@ const ar: Translations = {
     locationTitle: 'العثور على محطات قريبة',
     locationSubtitle: 'يحتاج FuelSpy إلى موقعك لإظهار أرخص المحطات القريبة منك.',
     allowLocation: 'السماح بالوصول للموقع',
-    skip: 'تخطي الآن'
+    skip: 'تخطي الآن',
+    vehicleTitle: 'مركبتك',
+    vehicleSubtitle: 'أخبرنا عن سيارتك لتخصيص توصيات الوقود.',
+    notifTitle: 'ابقَ على اطلاع',
+    notifSubtitle: 'احصل على تنبيهات عند انخفاض أسعار الوقود بالقرب منك.',
+    allowNotif: 'السماح بالإشعارات'
   },
   app: {
     snapSave: 'صوّر ووفّر',
@@ -818,7 +881,16 @@ const ar: Translations = {
     helpCenter: 'مركز المساعدة',
     language: 'اللغة',
     languageDesc: 'العربية / Français / English',
-    signOut: 'تسجيل الخروج'
+    signOut: 'تسجيل الخروج',
+    toNextLevel: 'للمستوى التالي',
+    locationPrivacy: 'الموقع والخصوصية',
+    locationAccess: 'الوصول للموقع',
+    locationDesc: 'السماح لـ FuelSpy بالعثور على المحطات القريبة',
+    regrantLocation: 'إعادة تفعيل الموقع',
+    locationGranted: 'تم تفعيل الموقع',
+    locationDenied: 'تم رفض الموقع',
+    vehicleModel: 'طراز المركبة',
+    fuelType: 'نوع الوقود'
   },
   languageSettings: {
     title: 'اللغة',
@@ -864,7 +936,10 @@ const ar: Translations = {
     earn50: 'اكسب +50 نقطة',
     availableServices: 'الخدمات المتاحة',
     ratingStation: 'جاري التقييم...',
-    close: 'إغلاق'
+    close: 'إغلاق',
+    addAmenities: '+ إضافة',
+    amenitiesSaved: 'تم تحديث الخدمات! +5 نقاط',
+    noAmenities: 'لم يتم الإبلاغ عن خدمات بعد — اضغط للإضافة'
   },
   nearby: {
     nearbyStations: 'محطات قريبة',
@@ -990,6 +1065,8 @@ const ar: Translations = {
     confirmRedeemDesc: 'هل أنت متأكد من استبدال نقاطك بهذه القسيمة؟',
     notEnoughPoints: 'نقاط غير كافية لهذه القسيمة.',
     redeemSuccess: 'تم استبدال القسيمة بنجاح!',
+    redeemFailed: 'فشل الاستبدال. يرجى المحاولة مرة أخرى.',
+    featureActivating: 'هذه الميزة قيد التفعيل. يرجى المحاولة لاحقاً.',
     pts: 'نقطة',
     mad: 'د.م',
     cats: { all: 'الكل', fuel: 'وقود', wash: 'غسيل', food: 'طعام' },
@@ -1086,7 +1163,8 @@ const ar: Translations = {
     modelName: 'اسم الطراز',
     odometer: 'عداد المسافة',
     primaryFuel: 'الوقود الأساسي',
-    saveChanges: 'حفظ التغييرات'
+    saveChanges: 'حفظ التغييرات',
+    enterModel: 'مثال: داسيا لوغان'
   },
   paymentMethods: {
     title: 'المدفوعات',
@@ -1094,7 +1172,14 @@ const ar: Translations = {
     expires: 'ينتهي',
     primary: 'أساسية',
     addNew: 'إضافة طريقة دفع جديدة',
-    digitalWallets: 'المحافظ الرقمية'
+    digitalWallets: 'المحافظ الرقمية',
+    comingSoon: 'قريباً',
+    comingSoonDesc: 'نعمل على إضافة طرق الدفع لتتمكن من دفع ثمن الوقود مباشرة عبر FuelSpy.',
+    cardPayment: 'الدفع بالبطاقة',
+    cardPaymentDesc: 'فيزا، ماستركارد، CMI',
+    mobilePay: 'الدفع عبر الهاتف',
+    mobilePayDesc: 'M-Wallet, Inwi Money',
+    soon: 'قريباً'
   },
   securitySettings: {
     title: 'الأمان',
@@ -1105,7 +1190,9 @@ const ar: Translations = {
     highlyRec: 'موصى به بشدة',
     biometrics: 'البيومترية',
     faceId: 'بصمة الوجه / الإصبع',
-    fastLogin: 'تسجيل دخول وإبلاغ سريع'
+    fastLogin: 'تسجيل دخول وإبلاغ سريع',
+    locationPermission: 'إذن الموقع',
+    locationPermissionDesc: 'إعادة تفعيل أو تحديث الوصول للموقع'
   },
   auth: {
     welcome: 'مرحباً بعودتك',

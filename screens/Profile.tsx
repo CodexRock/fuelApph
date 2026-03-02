@@ -25,6 +25,7 @@ export const Profile: React.FC<ProfileProps> = ({ onSignOut }) => {
   const [subView, setSubView] = useState<ProfileSubView>('main');
   const [profileData, setProfileData] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const { t } = useLanguage();
   const { user } = useAuth();
 
@@ -57,8 +58,23 @@ export const Profile: React.FC<ProfileProps> = ({ onSignOut }) => {
         globalRank: data.global_rank,
         vehicle: data.vehicle
       });
+      setAvatarUrl(data.avatar_url || null);
     }
     setLoading(false);
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    const ext = file.name.split('.').pop();
+    const path = `avatars/${user.id}.${ext}`;
+    const { error: uploadErr } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
+    if (uploadErr) { console.error('Upload error:', uploadErr); return; }
+    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
+    if (urlData?.publicUrl) {
+      await supabase.from('users').update({ avatar_url: urlData.publicUrl }).eq('id', user.id);
+      setAvatarUrl(urlData.publicUrl + '?t=' + Date.now());
+    }
   };
 
   const renderContent = () => {
@@ -101,19 +117,39 @@ export const Profile: React.FC<ProfileProps> = ({ onSignOut }) => {
                     <circle cx="66" cy="66" r="60" fill="none" stroke="currentColor" strokeWidth="4" className="text-white/5" />
                     <circle cx="66" cy="66" r="60" fill="none" stroke="currentColor" strokeWidth="4" strokeDasharray="376" strokeDashoffset={376 * (1 - ((profileData.xp || 0) / (profileData.nextLevelXp || 100)))} strokeLinecap="round" className="text-primary transition-all duration-1000" />
                   </svg>
-                  <img
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBD7lWc3Zbxpl_SpBz_FS6unVna7LApC1zxm1c8LRcxEkXE8Vd8EEqppAiYS65qSmA6jFUEEfUkVRIGBPaJN8IMa9BKGgQf-9efmHKa2iExtZiDIlQpCcI6kOQcltPLVg-mXBlGKsHa-OblN_PgsvUe_eKsU5bZkdWupbeaqq1_GhWTiSArXz3Wo5sApCd95RtVtv9YnHbqom_ShfZ0GuRidfWboRCORUcz2YC2B_8JX7jasaVX6VuKqF7XvW2a3R4g3_gwZsGYDgxY"
-                    alt="Profile"
-                    className="size-full rounded-full object-cover relative z-10"
-                  />
+                  <label className="cursor-pointer size-full block rounded-full relative z-10 group">
+                    <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Profile" className="size-full rounded-full object-cover" />
+                    ) : (
+                      <div className="size-full rounded-full bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center text-white">
+                        <span className="text-4xl font-black">{(profileData.name || 'U').charAt(0).toUpperCase()}</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
+                      <span className="material-symbols-outlined text-white opacity-0 group-hover:opacity-100 transition-opacity text-2xl">photo_camera</span>
+                    </div>
+                  </label>
                 </div>
                 <div className="absolute -bottom-1 -right-1 bg-primary text-background-dark font-black px-3 py-1 rounded-full border-4 border-background-dark shadow-xl text-xs z-20">
-                  {t('profile.level')} {profileData.level || 1}
+                  {t('profile.level') || 'LVL'} {profileData.level || 1}
                 </div>
               </div>
 
               <h1 className="text-3xl font-black text-white mb-1 tracking-tight">{profileData.name}</h1>
-              <p className="text-primary font-black text-[10px] uppercase tracking-[0.2em] mb-8">{t('profile.expertTracker')}</p>
+              <p className="text-primary font-black text-[10px] uppercase tracking-[0.2em] mb-4">{t('profile.expertTracker') || 'Expert Tracker'}</p>
+
+              {/* XP Progress Bar */}
+              <div className="w-full bg-surface-dark rounded-2xl border border-white/5 p-4 mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('profile.level') || 'LVL'} {profileData.level || 1}</span>
+                  <span className="text-[10px] font-black text-primary">{profileData.xp || 0} / {profileData.nextLevelXp || 100} XP</span>
+                </div>
+                <div className="h-2 w-full bg-black/30 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-primary to-cyan-400 rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(59,130,246,0.5)]" style={{ width: `${Math.min(100, ((profileData.xp || 0) / (profileData.nextLevelXp || 100)) * 100)}%` }}></div>
+                </div>
+                <p className="text-[9px] text-slate-500 mt-2 text-center font-bold">{Math.max(0, (profileData.nextLevelXp || 100) - (profileData.xp || 0))} XP {t('profile.toNextLevel') || 'to next level'}</p>
+              </div>
 
               <div className="w-full grid grid-cols-3 gap-0.5 rounded-3xl overflow-hidden bg-white/5 border border-white/5 shadow-2xl backdrop-blur-md">
                 <div className="flex flex-col items-center py-4 bg-surface-dark/40">

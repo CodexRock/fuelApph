@@ -4,6 +4,7 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { confirmPrice } from '../services/stationService';
 import { calculateDistance, estimateDrivingTime } from '../utils/distance';
+import { supabase } from '../lib/supabase';
 
 interface StationSheetProps {
   station: Station | null;
@@ -33,6 +34,9 @@ export const StationSheet: React.FC<StationSheetProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const startY = useRef(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [editingAmenities, setEditingAmenities] = useState(false);
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(station?.amenities || []);
+  const [savingAmenities, setSavingAmenities] = useState(false);
 
   if (!station) return null;
 
@@ -204,29 +208,91 @@ export const StationSheet: React.FC<StationSheetProps> = ({
                 </div>
               </div>
 
-              {/* Amenities */}
-              {station.amenities && station.amenities.length > 0 && (
-                <div className="flex gap-2 overflow-x-auto no-scrollbar mb-6 pb-2">
-                  {station.amenities.map(amenity => {
-                    let icon = 'local_convenience_store';
-                    let label = amenity;
-                    switch (amenity) {
-                      case 'Cafe': icon = 'local_cafe'; break;
-                      case 'Shop': icon = 'local_mall'; break;
-                      case 'Wash': icon = 'local_car_wash'; break;
-                      case 'WC': icon = 'wc'; break;
-                      case 'Mosque': icon = 'mosque'; break;
-                      case 'Tire': icon = 'tire_repair'; break;
-                    }
-                    return (
-                      <div key={amenity} className="flex flex-col items-center justify-center bg-surface-dark border border-white/5 rounded-xl min-w-[64px] h-16 shrink-0 shadow-lg">
-                        <span className="material-symbols-outlined text-slate-400 mb-1 text-[20px]">{icon}</span>
-                        <span className="text-[9px] font-black uppercase text-slate-300 tracking-widest">{label}</span>
-                      </div>
-                    );
-                  })}
+              {/* Amenities — Interactive */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-black text-white uppercase tracking-widest">{t('station.availableServices') || 'Services'}</h3>
+                  <button
+                    onClick={() => setEditingAmenities(!editingAmenities)}
+                    className="text-[10px] font-black text-primary uppercase tracking-widest"
+                  >
+                    {editingAmenities ? (t('app.cancel') || 'Cancel') : (t('station.addAmenities') || '+ Add')}
+                  </button>
                 </div>
-              )}
+
+                {editingAmenities ? (
+                  <div className="space-y-3 animate-fadeIn">
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { id: 'Cafe', icon: 'local_cafe', label: t('amenities.Café') || 'Café' },
+                        { id: 'Shop', icon: 'local_mall', label: t('amenities.Shop') || 'Shop' },
+                        { id: 'Wash', icon: 'local_car_wash', label: t('amenities.Car Wash') || 'Car Wash' },
+                        { id: 'WC', icon: 'wc', label: t('amenities.WC') || 'WC' },
+                        { id: 'Mosque', icon: 'mosque', label: t('amenities.Mosque') || 'Mosque' },
+                        { id: 'ATM', icon: 'atm', label: t('amenities.ATM') || 'ATM' },
+                        { id: 'Air', icon: 'air', label: t('amenities.Air') || 'Air' },
+                        { id: 'EV', icon: 'ev_charger', label: t('amenities.EV Charge') || 'EV' },
+                        { id: 'Tire', icon: 'tire_repair', label: 'Tire' },
+                      ].map(a => (
+                        <button
+                          key={a.id}
+                          onClick={() => setSelectedAmenities(prev => prev.includes(a.id) ? prev.filter(x => x !== a.id) : [...prev, a.id])}
+                          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${selectedAmenities.includes(a.id)
+                            ? 'bg-primary/20 border-primary text-primary'
+                            : 'bg-surface-dark border-white/5 text-slate-500'
+                            }`}
+                        >
+                          <span className="material-symbols-outlined text-[16px]">{a.icon}</span>
+                          {a.label}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      onClick={async () => {
+                        setSavingAmenities(true);
+                        await supabase.from('stations').update({ amenities: selectedAmenities }).eq('id', station.id);
+                        setSavingAmenities(false);
+                        setEditingAmenities(false);
+                        showAlert(t('app.success') || 'Success!', t('station.amenitiesSaved') || 'Amenities updated! +5 PTS', 'success');
+                      }}
+                      disabled={savingAmenities}
+                      className="w-full py-3 bg-primary text-background-dark font-black text-xs rounded-xl uppercase tracking-widest active:scale-95 transition-all disabled:opacity-50"
+                    >
+                      {savingAmenities ? '...' : (t('app.confirm') || 'Save')}
+                    </button>
+                  </div>
+                ) : station.amenities && station.amenities.length > 0 ? (
+                  <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+                    {station.amenities.map(amenity => {
+                      let icon = 'local_convenience_store';
+                      switch (amenity) {
+                        case 'Cafe': icon = 'local_cafe'; break;
+                        case 'Shop': icon = 'local_mall'; break;
+                        case 'Wash': icon = 'local_car_wash'; break;
+                        case 'WC': icon = 'wc'; break;
+                        case 'Mosque': icon = 'mosque'; break;
+                        case 'Tire': icon = 'tire_repair'; break;
+                        case 'ATM': icon = 'atm'; break;
+                        case 'Air': icon = 'air'; break;
+                        case 'EV': icon = 'ev_charger'; break;
+                      }
+                      return (
+                        <div key={amenity} className="flex flex-col items-center justify-center bg-surface-dark border border-white/5 rounded-xl min-w-[64px] h-16 shrink-0 shadow-lg">
+                          <span className="material-symbols-outlined text-slate-400 mb-1 text-[20px]">{icon}</span>
+                          <span className="text-[9px] font-black uppercase text-slate-300 tracking-widest">{amenity}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setEditingAmenities(true)}
+                    className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl text-slate-500 text-xs font-black uppercase tracking-widest hover:text-primary hover:border-primary/30 transition-all"
+                  >
+                    {t('station.noAmenities') || 'No services reported yet — tap to add'}
+                  </button>
+                )}
+              </div>
 
               <div className="grid grid-cols-3 gap-3 mb-8">
                 <button onClick={openWaze} className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors border border-blue-500/20 shadow-lg active:scale-95">
