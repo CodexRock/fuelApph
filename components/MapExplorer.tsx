@@ -596,7 +596,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
       )}
 
       <div className="absolute inset-0 z-0">
-        <MapContainer center={[33.5890, -7.6310]} zoom={14} zoomControl={false} className="h-full w-full">
+        <MapContainer center={[33.5890, -7.6310]} zoom={14} zoomControl={false} attributionControl={false} className="h-full w-full">
           <TileLayer
             attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
