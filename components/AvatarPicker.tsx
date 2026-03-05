@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../i18n/LanguageContext';
+import { AVATARS } from '../constants';
 
 interface AvatarPickerProps {
     isOpen: boolean;
@@ -9,16 +10,6 @@ interface AvatarPickerProps {
     currentAvatarId?: string;
 }
 
-const AVATARS = [
-    { id: 'avatar_3d_moro_1', path: 'avatars/avatar1.png' },
-    { id: 'avatar_3d_moro_2', path: 'avatars/avatar2.png' },
-    { id: 'avatar_3d_moro_3', path: 'avatars/avatar3.png' },
-    { id: 'avatar_3d_tech_agent', path: 'avatars/avatar4.png' },
-    { id: 'avatar_3d_moro_4_business', path: 'avatars/avatar5.png' },
-    { id: 'avatar_3d_moro_5_rider', path: 'avatars/avatar6.png' },
-    { id: 'avatar_3d_moro_6_sporty', path: 'avatars/avatar7.png' },
-    { id: 'avatar_3d_moro_7_classic', path: 'avatars/avatar8.png' },
-];
 
 export const AvatarPicker: React.FC<AvatarPickerProps> = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
     const { t } = useLanguage();
@@ -64,7 +55,7 @@ export const AvatarPicker: React.FC<AvatarPickerProps> = ({ isOpen, onClose, onS
                         <button
                             key={avatar.id}
                             onClick={() => {
-                                onSelect(avatar.id);
+                                onSelect(avatar.path);
                                 onClose();
                             }}
                             className={`group relative aspect-square rounded-[1.5rem] overflow-hidden border-4 transition-all duration-300 active:scale-95 ${currentAvatarId === avatar.id ? 'border-primary ring-4 ring-primary/20 scale-105' : 'border-white/5 hover:border-white/20'

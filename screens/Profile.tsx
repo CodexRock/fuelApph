@@ -103,7 +103,7 @@ export const Profile: React.FC<ProfileProps> = ({ onSignOut }) => {
 
               <button
                 onClick={() => setSubView('notifications')}
-                className="absolute right-6 top-12 size-11 rounded-2xl bg-surface-dark border border-white/5 flex items-center justify-center text-slate-400 relative"
+                className="absolute right-6 top-12 size-11 rounded-2xl bg-surface-dark border border-white/5 flex items-center justify-center text-slate-400"
               >
                 <span className="material-symbols-outlined text-[22px]">notifications</span>
                 <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-surface-dark" />
@@ -120,7 +120,7 @@ export const Profile: React.FC<ProfileProps> = ({ onSignOut }) => {
                     className="cursor-pointer size-full block rounded-full relative z-10 group overflow-hidden"
                   >
                     {avatarUrl ? (
-                      <img src={avatarUrl} alt="Profile" className="size-full rounded-full object-cover" />
+                      <img src={avatarUrl.startsWith('http') || avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`} alt="Profile" className="size-full rounded-full object-cover" />
                     ) : (
                       <div className="size-full rounded-full bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center text-white">
                         <span className="text-4xl font-black">{(profileData.name || 'U').charAt(0).toUpperCase()}</span>
@@ -219,7 +219,7 @@ export const Profile: React.FC<ProfileProps> = ({ onSignOut }) => {
                 </div>
               </button>
             </div>
-          </div>
+          </div >
         );
     }
   };

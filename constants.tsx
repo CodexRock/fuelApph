@@ -16,7 +16,8 @@ export const MOCK_USER: User = {
     model: 'Renault Clio 4',
     fuel: 'Diesel',
     odometer: 124500
-  }
+  },
+  role: 'admin'
 };
 
 export const MOCK_STATIONS: Station[] = [
@@ -105,3 +106,14 @@ export const BRAND_COLORS = {
   'Ola Energy': 'bg-blue-800',
   Petrom: 'bg-orange-600'
 };
+
+export const AVATARS = [
+  { id: 'avatar_3d_moro_1', path: '/avatars/avatar1.png' },
+  { id: 'avatar_3d_moro_2', path: '/avatars/avatar2.png' },
+  { id: 'avatar_3d_moro_3', path: '/avatars/avatar3.png' },
+  { id: 'avatar_3d_tech_agent', path: '/avatars/avatar4.png' },
+  { id: 'avatar_3d_moro_4_business', path: '/avatars/avatar5.png' },
+  { id: 'avatar_3d_moro_5_rider', path: '/avatars/avatar6.png' },
+  { id: 'avatar_3d_moro_6_sporty', path: '/avatars/avatar7.png' },
+  { id: 'avatar_3d_moro_7_classic', path: '/avatars/avatar8.png' },
+];
