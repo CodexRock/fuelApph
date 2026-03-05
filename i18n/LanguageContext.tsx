@@ -44,6 +44,7 @@ const en: Translations = {
     cancel: 'Cancel',
     confirm: 'Confirm',
     ok: 'OK',
+    noChanges: 'No changes',
     locationReminderTitle: 'Location Required',
     locationReminderDesc: "Hello! You can't add prices or confirm and gain points without location access. Please allow location to find the closest stations, use the app fully, and earn points and gifts!"
   },
@@ -66,8 +67,10 @@ const en: Translations = {
     accountSecurity: 'Account Security',
     helpCenter: 'Help Center',
     language: 'Language',
-    languageDesc: 'English / Français',
+    languageDesc: 'Arabic / Français / English',
     signOut: 'Sign Out',
+    darkMode: 'Dark Mode',
+    lightMode: 'Light Mode',
     toNextLevel: 'to next level',
     locationPrivacy: 'Location & Privacy',
     locationAccess: 'Location Access',
@@ -221,6 +224,7 @@ const en: Translations = {
     contributionLogged: 'Contribution Logged',
     contributionVerified: 'Contribution Verified',
     wait: 'Wait for it...',
+    shareWhatsApp: 'Share on WhatsApp',
     returnToMap: 'Awesome, Return to Map'
   },
   rewards: {
@@ -459,6 +463,7 @@ const fr: Translations = {
     cancel: 'Annuler',
     confirm: 'Confirmer',
     ok: 'OK',
+    noChanges: 'Aucun changement',
     locationReminderTitle: 'Position Requise',
     locationReminderDesc: "Bonjour ! Vous ne pouvez pas ajouter ou confirmer de prix et gagner des points sans la localisation. Autorisez la localisation pour trouver les stations les plus proches, utiliser pleinement l'application et gagner des points et cadeaux !"
   },
@@ -481,8 +486,10 @@ const fr: Translations = {
     accountSecurity: 'Sécurité du compte',
     helpCenter: 'Centre d\'aide',
     language: 'Langue',
-    languageDesc: 'English / Français',
+    languageDesc: 'العربية / Français / English',
     signOut: 'Se déconnecter',
+    darkMode: 'Mode sombre',
+    lightMode: 'Mode clair',
     toNextLevel: 'pour le niveau suivant',
     locationPrivacy: 'Position et Confidentialité',
     locationAccess: 'Accès à la Position',
@@ -636,6 +643,7 @@ const fr: Translations = {
     contributionLogged: 'Contribution enregistrée',
     contributionVerified: 'Contribution vérifiée',
     wait: 'Patientez...',
+    shareWhatsApp: 'Partager sur WhatsApp',
     returnToMap: 'Génial, Retour à la carte'
   },
   rewards: {
@@ -874,6 +882,7 @@ const ar: Translations = {
     cancel: 'إلغاء',
     confirm: 'تأكيد',
     ok: 'موافق',
+    noChanges: 'لا توجد تغييرات',
     locationReminderTitle: 'الموقع مطلوب',
     locationReminderDesc: 'مرحباً! لا يمكنك إضافة أو تأكيد الأسعار وكسب النقاط بدون تفعيل الموقع. فعّل الموقع للعثور على أقرب المحطات واستخدام التطبيق بالكامل!'
   },
@@ -907,6 +916,8 @@ const ar: Translations = {
     locationDenied: 'تم رفض الموقع',
     vehicleModel: 'طراز المركبة',
     fuelType: 'نوع الوقود',
+    darkMode: 'الوضع الليلي',
+    lightMode: 'الوضع النهاري',
     chooseAvatar: 'اختر صورتك الرمزية',
     netflixStyle: 'مجموعة ثلاثية الأبعاد مميزة',
     avatarInfo: 'اختر أيقونة فريدة تمثل شخصيتك على الطريق.',
@@ -1051,6 +1062,7 @@ const ar: Translations = {
     contributionLogged: 'تم تسجيل المساهمة',
     contributionVerified: 'تم التحقق من المساهمة',
     wait: 'انتظر...',
+    shareWhatsApp: 'مشاركة عبر واتساب',
     returnToMap: 'رائع، العودة للخريطة'
   },
   rewards: {
@@ -1226,6 +1238,7 @@ const ar: Translations = {
     hasAccount: 'لديك حساب بالفعل؟ سجّل الدخول',
     failed: 'فشل المصادقة',
     forgotPassword: 'نسيت كلمة المرور؟',
+    continue: 'متابعة',
     resetPassword: 'إعادة تعيين كلمة المرور',
     sendResetLink: 'إرسال رابط إعادة التعيين',
     backToLogin: 'العودة لتسجيل الدخول',

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Station, FuelType } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 
@@ -71,7 +72,7 @@ export const ManualReport: React.FC<ManualReportProps> = ({ station, onBack, onC
 
   const handleConfirmClick = () => {
     if (modifiedFuels.size === 0) {
-      setValidationError(t('app.noChanges') || 'Please enter a new price');
+      setValidationError(t('app.noChanges'));
       return;
     }
 
@@ -208,31 +209,34 @@ export const ManualReport: React.FC<ManualReportProps> = ({ station, onBack, onC
           onClick={handleConfirmClick}
           className="w-full h-14 bg-primary text-background-dark font-black text-lg rounded-3xl shadow-[0_15px_30px_rgba(59,130,246,0.3)] hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-3 mt-1 shrink-0 mb-4 uppercase tracking-widest"
         >
-          <span>{modifiedFuels.size > 0 ? t('manualReport.confirmPrice') : t('app.noChanges') || 'No modifications'}</span>
+          <span>{modifiedFuels.size > 0 ? t('manualReport.confirmPrice') : t('app.noChanges')}</span>
           <span className="material-symbols-outlined font-black text-[20px]">{modifiedFuels.size > 0 ? "check" : "edit"}</span>
         </button>
       </main>
 
       {/* Confirmation Modal */}
-      {showConfirm && (
-        <div className="absolute inset-0 z-[2000] flex items-center justify-center p-4">
+      {showConfirm && (document.getElementById('modal-root') || document.body) && createPortal(
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-background-dark/80 backdrop-blur-sm" onClick={() => setShowConfirm(false)} />
-          <div className="bg-surface-dark border border-white/5 rounded-3xl p-6 w-full max-w-sm relative z-10 shadow-2xl animate-fadeIn">
-            <h3 className="text-xl font-black uppercase tracking-widest mb-4">Confirm Prices</h3>
+          <div className="bg-surface-dark border border-white/5 rounded-3xl p-6 w-full max-w-sm relative z-10 shadow-2xl animate-scaleIn">
+            <h3 className="text-xl font-black uppercase tracking-widest mb-4">{t('manualReport.confirmPrice')}</h3>
             <div className="bg-background-dark/50 rounded-2xl p-4 mb-6 space-y-3">
               {Array.from(modifiedFuels).map(type => (
                 <div key={type} className="flex justify-between items-center bg-surface-dark/50 p-3 rounded-xl">
-                  <span className="font-bold text-slate-300">{type}</span>
+                  <span className="font-bold text-slate-300">
+                    {type === 'Diesel' ? t('station.diesel') : type === 'Sans Plomb' ? t('station.sansPlomb') : t('station.premium')}
+                  </span>
                   <span className="font-black text-primary text-xl">{prices[type]} <span className="text-xs text-slate-500">DH</span></span>
                 </div>
               ))}
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setShowConfirm(false)} className="flex-1 py-4 rounded-2xl font-black uppercase text-xs tracking-widest border border-white/10 text-slate-300 hover:bg-white/5">Cancel</button>
-              <button onClick={submitAll} className="flex-1 py-4 rounded-2xl font-black uppercase text-xs tracking-widest bg-primary text-background-dark shadow-[0_10px_20px_rgba(59,130,246,0.3)]">Confirm & Send</button>
+              <button onClick={() => setShowConfirm(false)} className="flex-1 py-4 rounded-2xl font-black uppercase text-xs tracking-widest border border-white/10 text-slate-300 hover:bg-white/5">{t('app.cancel')}</button>
+              <button onClick={submitAll} className="flex-1 py-4 rounded-2xl font-black uppercase text-xs tracking-widest bg-primary text-background-dark shadow-[0_10px_20px_rgba(59,130,246,0.3)]">{t('app.confirm')}</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.getElementById('modal-root') || document.body
       )}
 
       {/* iOS Home Indicator Spacer */}

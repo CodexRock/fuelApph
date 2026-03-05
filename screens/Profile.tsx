@@ -231,7 +231,7 @@ export const Profile: React.FC<ProfileProps> = ({ onSignOut }) => {
         isOpen={isAvatarPickerOpen}
         onClose={() => setIsAvatarPickerOpen(false)}
         onSelect={handleAvatarSelect}
-        currentAvatar={avatarUrl}
+        currentAvatarId={avatarUrl || undefined}
       />
     </div>
   );
@@ -262,6 +262,7 @@ const ListButton: React.FC<{ icon: string; label: string; onClick?: () => void }
 
 const ThemeToggleButton: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
+  const { t } = useLanguage();
   return (
     <button
       onClick={toggleTheme}
@@ -272,7 +273,7 @@ const ThemeToggleButton: React.FC = () => {
           {theme === 'dark' ? 'dark_mode' : 'light_mode'}
         </span>
         <span className="font-bold text-sm text-slate-200">
-          {theme === 'dark' ? 'Mode sombre' : 'Mode clair'}
+          {theme === 'dark' ? t('profile.darkMode') : t('profile.lightMode')}
         </span>
       </div>
       <div className={`w-12 h-7 rounded-full p-1 transition-colors ${theme === 'dark' ? 'bg-primary' : 'bg-slate-300'}`}>

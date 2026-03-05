@@ -76,16 +76,16 @@ export const ContributionSuccess: React.FC<ContributionSuccessProps> = ({ onDone
             ? 'border-primary/50 bg-surface-darker shadow-[0_0_50px_rgba(59,130,246,0.3)] animate-pulse'
             : 'border-accent-gold/80 bg-gradient-to-br from-surface-dark to-surface-darker shadow-[0_0_80px_rgba(251,191,36,0.4)] scale-105'
             }`}>
-            <span className={`text-sm font-black uppercase tracking-[0.3em] mb-2 transition-colors ${isSpinning ? 'text-primary' : 'text-accent-gold'}`}>
+            <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-2 text-center w-full block">
               {isSpinning ? t('contributionSuccess.calculating') : (isPioneer ? t('contributionSuccess.pioneerBonus') : t('contributionSuccess.mysteryReward'))}
             </span>
-            <div className="flex items-baseline gap-2 tabular-nums">
-              <span className={`text-[80px] font-black leading-none tracking-tighter transition-colors ${isSpinning ? 'text-white blur-[1px]' : 'text-accent-gold drop-shadow-[0_0_20px_rgba(251,191,36,0.8)]'
+            <div className="flex items-baseline justify-center gap-2 tabular-nums w-full">
+              <span className={`text-[80px] font-black leading-none tracking-tighter text-center w-full transition-colors ${isSpinning ? 'text-white blur-[1px]' : 'text-accent-gold drop-shadow-[0_0_20px_rgba(251,191,36,0.8)]'
                 }`}>
                 +{displayPoints}
               </span>
             </div>
-            <span className={`text-xl font-black mt-2 transition-colors ${isSpinning ? 'text-primary/50' : 'text-accent-gold/80'}`}>
+            <span className={`text-xl font-black mt-2 text-center w-full transition-colors ${isSpinning ? 'text-primary/50' : 'text-accent-gold/80'}`}>
               PTS
             </span>
 
@@ -124,7 +124,7 @@ export const ContributionSuccess: React.FC<ContributionSuccessProps> = ({ onDone
               className="w-full h-16 bg-[#25D366] hover:bg-[#128C7E] text-white font-black text-xl rounded-[2rem] shadow-[0_15px_30px_rgba(37,211,102,0.3)] flex items-center justify-center gap-3 transition-all active:scale-95 uppercase tracking-widest"
             >
               <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" className="h-6 w-6" />
-              {t('contributionSuccess.shareWhatsApp') || 'Share'}
+              {t('contributionSuccess.shareWhatsApp')}
             </button>
           )}
 

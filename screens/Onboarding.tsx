@@ -339,6 +339,12 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           </div>
         )
       }
-    </div >
+      <AvatarPicker
+        isOpen={isAvatarPickerOpen}
+        onClose={() => setIsAvatarPickerOpen(false)}
+        onSelect={(id) => setSelectedAvatar(id)}
+        currentAvatarId={selectedAvatar || undefined}
+      />
+    </div>
   );
 };

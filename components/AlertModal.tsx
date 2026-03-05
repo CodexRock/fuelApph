@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 interface AlertModalProps {
     isOpen: boolean;
@@ -17,7 +18,22 @@ export const AlertModal: React.FC<AlertModalProps> = ({
     onClose,
     confirmText = 'OK'
 }) => {
-    if (!isOpen) return null;
+    const [modalElement, setModalElement] = React.useState<HTMLElement | null>(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            setModalElement(document.getElementById('modal-root') || document.body);
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+            setModalElement(null);
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
+
+    if (!isOpen || !modalElement) return null;
 
     const getIcon = () => {
         switch (type) {
@@ -27,10 +43,16 @@ export const AlertModal: React.FC<AlertModalProps> = ({
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 animate-fadeIn">
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={onClose} />
-            <div className="relative bg-surface-dark border border-white/10 p-8 rounded-[2rem] shadow-2xl w-full max-w-sm flex flex-col items-center text-center animate-slide-up">
+    return createPortal(
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 animate-fadeIn">
+            {/* Backdrop */}
+            <div
+                className="absolute inset-0 bg-background-dark/80 backdrop-blur-sm"
+                onClick={onClose}
+            />
+
+            {/* Modal Content */}
+            <div className="bg-surface-dark border border-white/5 rounded-[2.5rem] p-8 w-full max-w-sm relative z-10 shadow-2xl animate-scaleIn flex flex-col items-center text-center">
                 {getIcon()}
                 <h3 className="text-2xl font-black text-white mb-3 tracking-tight">{title}</h3>
                 <p className="text-sm text-slate-300 mb-8 leading-relaxed font-medium">{message}</p>
@@ -41,6 +63,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                     {confirmText}
                 </button>
             </div>
-        </div>
+        </div>,
+        modalElement
     );
 };

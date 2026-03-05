@@ -500,7 +500,7 @@ export const Rewards: React.FC<RewardsProps> = ({ showAlert }) => {
         confirmText={t('app.confirm')}
         cancelText={t('app.cancel')}
         onConfirm={handleRedeem}
-        onCancel={() => setConfirmModal({ isOpen: false, item: null })}
+        onClose={() => setConfirmModal({ isOpen: false, item: null })}
       />
     </div>
   );
