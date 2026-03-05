@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface ConfirmModalProps {
     isOpen: boolean;
@@ -19,12 +19,23 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     confirmText = 'Confirm',
     cancelText = 'Cancel'
 }) => {
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 animate-fadeIn">
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={onCancel} />
-            <div className="relative bg-surface-dark border border-white/10 p-8 rounded-[2rem] shadow-2xl w-full max-w-sm flex flex-col items-center text-center animate-slide-up">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md animate-fadeIn transition-all">
+            <div className="absolute inset-0" onClick={onCancel} />
+            <div className="relative bg-surface-dark border border-white/10 p-6 sm:p-8 rounded-[2.5rem] shadow-2xl w-full max-w-[90vw] sm:max-w-sm flex flex-col items-center text-center animate-bounce-in">
                 <span className="material-symbols-outlined text-orange-500 text-5xl mb-4">help_center</span>
                 <h3 className="text-2xl font-black text-white mb-3 tracking-tight">{title}</h3>
                 <p className="text-sm text-slate-300 mb-8 leading-relaxed font-medium">{message}</p>

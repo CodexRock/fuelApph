@@ -12,6 +12,7 @@ import { calculateDistance } from '../utils/distance';
 import { MoroccoRestrictionModal } from './MoroccoRestrictionModal';
 import { isInsideMorocco } from '../utils/location';
 import { syncNewStations } from '../services/stationSyncService';
+import { mapStation } from '../services/stationService';
 
 interface MapExplorerProps {
   onStationSelect: (station: Station) => void;
@@ -347,7 +348,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ onStationSelect, hideB
         });
 
         if (!rpcError && supabaseStations) {
-          setDbStations(supabaseStations as Station[]);
+          setDbStations((supabaseStations as any[]).map(mapStation));
         }
 
         const importedStations = await fetchStationsInBounds(boundsData);

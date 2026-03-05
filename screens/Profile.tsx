@@ -14,6 +14,7 @@ import { HelpCenter } from './HelpCenter';
 import { LanguageSettings } from './LanguageSettings';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { AvatarPicker } from '../components/AvatarPicker';
 
 type ProfileSubView = 'main' | 'leaderboard' | 'referrals' | 'logs' | 'notifications' | 'badges' | 'vehicle' | 'payment' | 'security' | 'help' | 'language';
 
@@ -26,6 +27,7 @@ export const Profile: React.FC<ProfileProps> = ({ onSignOut }) => {
   const [profileData, setProfileData] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isAvatarPickerOpen, setIsAvatarPickerOpen] = useState(false);
   const { t } = useLanguage();
   const { user } = useAuth();
 
@@ -63,17 +65,13 @@ export const Profile: React.FC<ProfileProps> = ({ onSignOut }) => {
     setLoading(false);
   };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-    const ext = file.name.split('.').pop();
-    const path = `avatars/${user.id}.${ext}`;
-    const { error: uploadErr } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
-    if (uploadErr) { console.error('Upload error:', uploadErr); return; }
-    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
-    if (urlData?.publicUrl) {
-      await supabase.from('users').update({ avatar_url: urlData.publicUrl }).eq('id', user.id);
-      setAvatarUrl(urlData.publicUrl + '?t=' + Date.now());
+  const handleAvatarSelect = async (path: string) => {
+    if (!user) return;
+    const { error } = await supabase.from('users').update({ avatar_url: path }).eq('id', user.id);
+    if (error) {
+      console.error('Error updating avatar:', error);
+    } else {
+      setAvatarUrl(path);
     }
   };
 
@@ -117,8 +115,10 @@ export const Profile: React.FC<ProfileProps> = ({ onSignOut }) => {
                     <circle cx="66" cy="66" r="60" fill="none" stroke="currentColor" strokeWidth="4" className="text-white/5" />
                     <circle cx="66" cy="66" r="60" fill="none" stroke="currentColor" strokeWidth="4" strokeDasharray="376" strokeDashoffset={376 * (1 - ((profileData.xp || 0) / (profileData.nextLevelXp || 100)))} strokeLinecap="round" className="text-primary transition-all duration-1000" />
                   </svg>
-                  <label className="cursor-pointer size-full block rounded-full relative z-10 group">
-                    <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                  <button
+                    onClick={() => setIsAvatarPickerOpen(true)}
+                    className="cursor-pointer size-full block rounded-full relative z-10 group overflow-hidden"
+                  >
                     {avatarUrl ? (
                       <img src={avatarUrl} alt="Profile" className="size-full rounded-full object-cover" />
                     ) : (
@@ -127,9 +127,9 @@ export const Profile: React.FC<ProfileProps> = ({ onSignOut }) => {
                       </div>
                     )}
                     <div className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
-                      <span className="material-symbols-outlined text-white opacity-0 group-hover:opacity-100 transition-opacity text-2xl">photo_camera</span>
+                      <span className="material-symbols-outlined text-white opacity-0 group-hover:opacity-100 transition-opacity text-2xl">edit_square</span>
                     </div>
-                  </label>
+                  </button>
                 </div>
                 <div className="absolute -bottom-1 -right-1 bg-primary text-background-dark font-black px-3 py-1 rounded-full border-4 border-background-dark shadow-xl text-xs z-20">
                   {t('profile.level') || 'LVL'} {profileData.level || 1}
@@ -227,6 +227,12 @@ export const Profile: React.FC<ProfileProps> = ({ onSignOut }) => {
   return (
     <div className="min-h-screen bg-background-dark text-white overflow-y-auto no-scrollbar">
       {renderContent()}
+      <AvatarPicker
+        isOpen={isAvatarPickerOpen}
+        onClose={() => setIsAvatarPickerOpen(false)}
+        onSelect={handleAvatarSelect}
+        currentAvatar={avatarUrl}
+      />
     </div>
   );
 };

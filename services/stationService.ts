@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { Station, FuelType } from '../types';
 
 // Points configuration
 const POINTS = {
@@ -238,13 +239,35 @@ async function awardPoints(
 }
 
 /**
+ * Helper to map Supabase snake_case station data to camelCase Station interface.
+ */
+export function mapStation(raw: any): Station {
+    return {
+        id: raw.id,
+        name: raw.name,
+        brand: raw.brand,
+        location: raw.location,
+        prices: raw.prices || {},
+        lastUpdated: raw.last_updated ? new Date(raw.last_updated).toLocaleString() : 'Recently',
+        lastUpdatedTimestamp: raw.last_updated_timestamp || (raw.last_updated ? new Date(raw.last_updated).getTime() : 0),
+        verifiedBy: raw.verified_by,
+        verifiedByLevel: raw.verified_by_level,
+        distance: raw.distance || 'Nearby',
+        amenities: raw.amenities || [],
+        status: raw.status || 'Open',
+        trustScore: raw.trust_score || 0,
+        isGhost: raw.is_ghost || false,
+    };
+}
+
+/**
  * Refresh stations from Supabase — returns all stations.
  */
-export async function fetchAllStations() {
+export async function fetchAllStations(): Promise<Station[]> {
     const { data, error } = await supabase.from('stations').select('*');
     if (error) {
         console.error('Error fetching stations:', error);
         return [];
     }
-    return data || [];
+    return (data || []).map(mapStation);
 }

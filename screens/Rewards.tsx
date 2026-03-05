@@ -52,7 +52,7 @@ export const Rewards: React.FC<RewardsProps> = ({ showAlert }) => {
             code: v.code,
             value: v.value,
             expiryDate: v.expiry_date,
-            status: v.status
+            status: v.is_used ? 'used' : 'active'
           })));
         }
       }
@@ -128,6 +128,27 @@ export const Rewards: React.FC<RewardsProps> = ({ showAlert }) => {
     } catch (err: any) {
       console.error('Redeem failed:', err);
       showAlert(t('app.error') || 'Error', err?.message || (t('rewards.redeemFailed') || 'Redemption failed. Please try again.'), 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMarkAsUsed = async (voucherId: string) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('vouchers')
+        .update({ is_used: true })
+        .eq('id', voucherId);
+
+      if (error) throw error;
+
+      setVouchers(vouchers.map(v => v.id === voucherId ? { ...v, status: 'used' } : v));
+      setExpandedVoucher(null);
+      showAlert(t('app.success'), t('rewards.voucherUsed') || 'Voucher marked as used!', 'success');
+    } catch (err: any) {
+      console.error('Error marking voucher as used:', err);
+      showAlert(t('app.error'), err.message, 'error');
     } finally {
       setLoading(false);
     }
@@ -437,8 +458,12 @@ export const Rewards: React.FC<RewardsProps> = ({ showAlert }) => {
                                 <span className="material-symbols-outlined text-[20px]">content_copy</span>
                               </button>
                             </div>
-                            <button className="w-full py-4 bg-primary text-background-dark font-black rounded-2xl shadow-xl shadow-primary/20 active:scale-95 transition-all text-sm uppercase tracking-widest">
-                              {t('rewards.markAsUsed')}
+                            <button
+                              onClick={() => handleMarkAsUsed(v.id)}
+                              disabled={loading}
+                              className="w-full py-4 bg-primary text-background-dark font-black rounded-2xl shadow-xl shadow-primary/20 active:scale-95 transition-all text-sm uppercase tracking-widest disabled:opacity-50"
+                            >
+                              {loading ? '...' : (t('rewards.markAsUsed') || 'Mark as used')}
                             </button>
                           </div>
                         </div>

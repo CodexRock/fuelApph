@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 export const VehicleSettings: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const { t } = useLanguage();
   const { user } = useAuth();
-  const [category, setCategory] = useState<'car' | 'taxi' | 'truck'>('car');
+  const [category, setCategory] = useState<'car' | 'taxi' | 'truck' | 'moto'>('car');
   const [fuel, setFuel] = useState('Diesel');
   const [modelName, setModelName] = useState('');
   const [odometer, setOdometer] = useState('');
@@ -53,7 +53,8 @@ export const VehicleSettings: React.FC<{ onBack: () => void }> = ({ onBack }) =>
             {[
               { id: 'car', label: t('vehicleSettings.personal') || 'Personal', icon: 'directions_car' },
               { id: 'taxi', label: t('vehicleSettings.taxi') || 'Taxi', icon: 'local_taxi' },
-              { id: 'truck', label: t('vehicleSettings.truck') || 'Truck', icon: 'local_shipping' }
+              { id: 'truck', label: t('vehicleSettings.truck') || 'Truck', icon: 'local_shipping' },
+              { id: 'moto', label: t('vehicleSettings.moto') || 'Moto', icon: 'moped' }
             ].map(cat => (
               <button
                 key={cat.id}
@@ -77,7 +78,30 @@ export const VehicleSettings: React.FC<{ onBack: () => void }> = ({ onBack }) =>
                 value={modelName}
                 onChange={e => setModelName(e.target.value)}
                 placeholder={t('vehicleSettings.enterModel') || 'e.g. Dacia Logan'}
+                list="moroccan-cars"
               />
+              <datalist id="moroccan-cars">
+                <option value="Dacia Logan" />
+                <option value="Dacia Sandero" />
+                <option value="Dacia Duster" />
+                <option value="Renault Clio" />
+                <option value="Renault Megane" />
+                <option value="Peugeot 208" />
+                <option value="Peugeot 308" />
+                <option value="Volkswagen Golf" />
+                <option value="Volkswagen Tiguan" />
+                <option value="Hyundai Tucson" />
+                <option value="Hyundai i10" />
+                <option value="Toyota Corolla" />
+                <option value="Toyota Yaris" />
+                <option value="Kia Picanto" />
+                <option value="Kia Sportage" />
+                <option value="Fiat 500" />
+                <option value="Citroen C3" />
+                <option value="Ford Fiesta" />
+                <option value="Seat Ibiza" />
+                <option value="Skoda Octavia" />
+              </datalist>
             </div>
             <div className="p-4 flex items-center justify-between">
               <span className="text-sm font-bold text-slate-300">{t('vehicleSettings.odometer') || 'Odometer'}</span>

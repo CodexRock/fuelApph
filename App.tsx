@@ -18,7 +18,7 @@ import { Station } from './types';
 import { AlertModal } from './components/AlertModal';
 import { useLanguage } from './i18n/LanguageContext';
 import { supabase } from './lib/supabase';
-import { submitPriceReport, addNewStation } from './services/stationService';
+import { submitPriceReport, addNewStation, mapStation } from './services/stationService';
 import { calculateDistance } from './utils/distance';
 import { isValidStation } from './utils/brands';
 
@@ -199,6 +199,15 @@ const App: React.FC = () => {
     setStationRefreshKey(prev => prev + 1);
   };
 
+  const handleStationUpdate = async () => {
+    if (!selectedStation) return;
+    const { data, error } = await supabase.from('stations').select('*').eq('id', selectedStation.id).single();
+    if (data && !error) {
+      setSelectedStation(mapStation(data));
+      setStationRefreshKey(prev => prev + 1);
+    }
+  };
+
   const handleSignOut = () => {
     setHasOnboarded(false);
     setActiveTab('map');
@@ -279,6 +288,7 @@ const App: React.FC = () => {
                 userLocation={userLocation}
                 onClose={() => setSelectedStation(null)}
                 showAlert={showAlert}
+                onUpdate={handleStationUpdate}
                 onReport={handleReport}
                 onValidateDistance={() => selectedStation ? checkDistance(selectedStation.location.lat, selectedStation.location.lng) : false}
                 onManualReport={() => {

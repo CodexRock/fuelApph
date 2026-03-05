@@ -27,7 +27,9 @@ const en: Translations = {
     vehicleSubtitle: 'Tell us about your car so we can personalize your fuel recommendations.',
     notifTitle: 'Stay Informed',
     notifSubtitle: 'Get alerts when fuel prices drop near you and earn bonus points.',
-    allowNotif: 'Allow Notifications'
+    allowNotif: 'Allow Notifications',
+    pickAvatar: 'Pick Avatar',
+    vehicleModelPlaceholder: 'e.g. Dacia Logan'
   },
   app: {
     snapSave: 'Snap & Save',
@@ -74,7 +76,11 @@ const en: Translations = {
     locationGranted: 'Location access granted',
     locationDenied: 'Location access denied',
     vehicleModel: 'Vehicle Model',
-    fuelType: 'Fuel Type'
+    fuelType: 'Fuel Type',
+    chooseAvatar: 'Choose your Avatar',
+    netflixStyle: 'Premium 3D Collection',
+    avatarInfo: 'Select a unique icon that represents your personality on the road.',
+    changeAvatar: 'Change Avatar'
   },
   languageSettings: {
     title: 'Language / Langue',
@@ -400,6 +406,7 @@ const en: Translations = {
     fullName: 'Full Name',
     fullNamePlaceholder: 'Ahmed Benali',
     passwordHint: 'Password must be at least 6 characters',
+    continue: 'Continue',
     continueGoogle: 'Continue with Google',
     continueFacebook: 'Continue with Facebook',
     continueApple: 'Continue with Apple',
@@ -435,7 +442,9 @@ const fr: Translations = {
     vehicleSubtitle: 'Parlez-nous de votre véhicule pour personnaliser vos recommandations.',
     notifTitle: 'Restez Informé',
     notifSubtitle: 'Recevez des alertes quand les prix du carburant baissent près de vous.',
-    allowNotif: 'Autoriser les Notifications'
+    allowNotif: 'Autoriser les Notifications',
+    pickAvatar: 'Choisir Avatar',
+    vehicleModelPlaceholder: 'e.g. Dacia Logan'
   },
   app: {
     snapSave: 'Scanner & Économiser',
@@ -482,7 +491,11 @@ const fr: Translations = {
     locationGranted: 'Position autorisée',
     locationDenied: 'Position refusée',
     vehicleModel: 'Modèle du Véhicule',
-    fuelType: 'Type de Carburant'
+    fuelType: 'Type de Carburant',
+    chooseAvatar: 'Choisissez votre Avatar',
+    netflixStyle: 'Collection 3D Premium',
+    avatarInfo: 'Sélectionnez une icône unique qui représente votre personnalité sur la route.',
+    changeAvatar: 'Changer Avatar'
   },
   languageSettings: {
     title: 'Langue / Language',
@@ -798,6 +811,7 @@ const fr: Translations = {
     hasAccount: "Vous avez déjà un compte ? Se connecter",
     failed: 'L\'authentification a échoué',
     forgotPassword: 'Mot de passe oublié ?',
+    continue: 'Continuer',
     resetPassword: 'Réinitialiser le mot de passe',
     sendResetLink: 'Envoyer le lien de réinitialisation',
     backToLogin: 'Retour à la connexion',
@@ -843,7 +857,9 @@ const ar: Translations = {
     vehicleSubtitle: 'أخبرنا عن سيارتك لتخصيص توصيات الوقود.',
     notifTitle: 'ابقَ على اطلاع',
     notifSubtitle: 'احصل على تنبيهات عند انخفاض أسعار الوقود بالقرب منك.',
-    allowNotif: 'السماح بالإشعارات'
+    allowNotif: 'السماح بالإشعارات',
+    pickAvatar: 'اختر صورة',
+    vehicleModelPlaceholder: 'مثال: داسيا لوغان'
   },
   app: {
     snapSave: 'صوّر ووفّر',
@@ -890,7 +906,11 @@ const ar: Translations = {
     locationGranted: 'تم تفعيل الموقع',
     locationDenied: 'تم رفض الموقع',
     vehicleModel: 'طراز المركبة',
-    fuelType: 'نوع الوقود'
+    fuelType: 'نوع الوقود',
+    chooseAvatar: 'اختر صورتك الرمزية',
+    netflixStyle: 'مجموعة ثلاثية الأبعاد مميزة',
+    avatarInfo: 'اختر أيقونة فريدة تمثل شخصيتك على الطريق.',
+    changeAvatar: 'تغيير الصورة'
   },
   languageSettings: {
     title: 'اللغة',

@@ -15,6 +15,7 @@ interface StationSheetProps {
   userLocation?: { lat: number, lng: number } | null;
   onValidateDistance: () => boolean;
   showAlert: (title: string, message: string, type?: 'error' | 'success' | 'info') => void;
+  onUpdate?: () => void;
 }
 
 export const StationSheet: React.FC<StationSheetProps> = ({
@@ -25,7 +26,8 @@ export const StationSheet: React.FC<StationSheetProps> = ({
   onVoiceReport,
   userLocation,
   onValidateDistance,
-  showAlert
+  showAlert,
+  onUpdate
 }) => {
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -37,6 +39,13 @@ export const StationSheet: React.FC<StationSheetProps> = ({
   const [editingAmenities, setEditingAmenities] = useState(false);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>(station?.amenities || []);
   const [savingAmenities, setSavingAmenities] = useState(false);
+
+  // Sync selectedAmenities when station changes
+  React.useEffect(() => {
+    if (station) {
+      setSelectedAmenities(station.amenities || []);
+    }
+  }, [station?.id, station?.amenities]);
 
   if (!station) return null;
 
@@ -197,6 +206,7 @@ export const StationSheet: React.FC<StationSheetProps> = ({
                 <div className={`size-2 rounded-full ${isStale ? 'bg-slate-500' : isHighlyTrusted ? 'bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-primary animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.5)]'}`}></div>
                 <div className="flex-1 flex justify-between items-center text-xs font-medium">
                   <span className={`flex items-center gap-1.5 ${isStale ? 'text-slate-400' : 'text-slate-300'}`}>
+                    <span className="material-symbols-outlined text-[14px]">history</span>
                     {isStale ? t('station.needsVerification') : `${t('station.verifiedBy')} ${station.verifiedBy || t('station.community')}`}
                     {!isStale && station.verifiedByLevel && (
                       <span className="bg-white/10 text-white text-[9px] px-1.5 py-0.5 rounded-full font-black border border-white/10 uppercase tracking-widest">
@@ -204,7 +214,10 @@ export const StationSheet: React.FC<StationSheetProps> = ({
                       </span>
                     )}
                   </span>
-                  <span className={isStale ? 'text-slate-500 font-bold' : 'text-white font-bold'}>{station.lastUpdated}</span>
+                  <div className="flex flex-col items-end">
+                    <span className="text-[9px] text-slate-500 uppercase font-black tracking-[0.1em] mb-0.5">{t('station.lastUpdate') || 'Last Update'}</span>
+                    <span className={isStale ? 'text-slate-500 font-bold' : 'text-white font-bold'}>{station.lastUpdated}</span>
+                  </div>
                 </div>
               </div>
 
@@ -253,6 +266,7 @@ export const StationSheet: React.FC<StationSheetProps> = ({
                         await supabase.from('stations').update({ amenities: selectedAmenities }).eq('id', station.id);
                         setSavingAmenities(false);
                         setEditingAmenities(false);
+                        if (onUpdate) onUpdate();
                         showAlert(t('app.success') || 'Success!', t('station.amenitiesSaved') || 'Amenities updated! +5 PTS', 'success');
                       }}
                       disabled={savingAmenities}
