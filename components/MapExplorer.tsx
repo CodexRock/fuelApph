@@ -60,16 +60,13 @@ const BoundsTracker: React.FC<{ onBoundsChange: (bounds: L.LatLngBounds, center:
   return null;
 };
 
-// Theme-aware map tile layer — dark tiles for dark mode, standard tiles for light mode
+// Constant light mode map tile layer (standard OSM tiles)
 const ThemeAwareTileLayer: React.FC = () => {
-  const { theme } = useTheme();
-  const darkUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
   const lightUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
   return (
     <TileLayer
       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-      url={theme === 'dark' ? darkUrl : lightUrl}
-      key={theme} // Force re-render when theme changes
+      url={lightUrl}
     />
   );
 };
